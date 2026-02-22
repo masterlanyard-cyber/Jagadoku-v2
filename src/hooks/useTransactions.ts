@@ -62,8 +62,8 @@ export function useTransactions(initialData: Transaction[] = []) {
       }
     }
 
-    // Always update local state
-    setTransactions([newTransaction, ...transactions]);
+    // Always update local state with functional update
+    setTransactions((prev) => [newTransaction, ...prev]);
   };
 
   const deleteTransaction = async (transactionId: string) => {
@@ -75,7 +75,7 @@ export function useTransactions(initialData: Transaction[] = []) {
       }
     }
 
-    setTransactions(transactions.filter(t => t.id !== transactionId));
+    setTransactions((prev) => prev.filter(t => t.id !== transactionId));
   };
 
   return {
