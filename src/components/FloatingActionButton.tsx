@@ -39,7 +39,16 @@ export default function FloatingActionButton({ onAddTransaction, onTransactionAd
   const [formAmount, setFormAmount] = useState("");
   const [formCategory, setFormCategory] = useState("");
   const [formDescription, setFormDescription] = useState("");
-  const [formDate, setFormDate] = useState(new Date().toISOString().split('T')[0]);
+  
+  // Get today's date in local timezone (NOT UTC)
+  const getTodayDate = () => {
+    const now = new Date();
+    const yyyy = now.getFullYear();
+    const mm = String(now.getMonth() + 1).padStart(2, '0');
+    const dd = String(now.getDate()).padStart(2, '0');
+    return `${yyyy}-${mm}-${dd}`;
+  };
+  const [formDate, setFormDate] = useState(getTodayDate());
   const [isSubmitting, setIsSubmitting] = useState(false);
   
   const [transactions, setTransactions] = useLocalStorage<Transaction[]>("jagadoku-transactions-v2", []);
@@ -97,7 +106,7 @@ export default function FloatingActionButton({ onAddTransaction, onTransactionAd
       setFormCategory("");
       setFormDescription("");
       setFormType("expense");
-      setFormDate(new Date().toISOString().split('T')[0]);
+      setFormDate(getTodayDate());
       setShowAddModal(false);
       alert("✓ Transaksi berhasil ditambahkan!");
       

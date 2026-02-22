@@ -26,9 +26,14 @@ export interface Transaction {
 
 export const addTransaction = async (userId: string, data: Omit<Transaction, 'id' | 'createdAt'>) => {
   const transactionsRef = collection(db, 'users', userId, 'transactions');
+  
+  // Parse date string (YYYY-MM-DD) as local date, NOT UTC
+  const [y, m, d] = data.date.split('-').map(Number);
+  const localDate = new Date(y, m - 1, d); // month is 0-indexed
+  
   const docRef = await addDoc(transactionsRef, {
     ...data,
-    date: Timestamp.fromDate(new Date(data.date)),
+    date: Timestamp.fromDate(localDate),
     createdAt: Timestamp.now(),
   });
   return docRef.id;
