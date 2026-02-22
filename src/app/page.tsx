@@ -334,51 +334,38 @@ export default function DashboardPage() {
                 const usagePercent = budget
                   ? Math.min(100, Math.round(usageRatio! * 100))
                   : cat.percentage;
-                const remainingPercent = Math.max(0, 100 - usagePercent);
                 const darkColor = blendHex(cat.color, "#000000", 0.25);
 
                 return (
-                  <div key={cat.name} className="flex items-center gap-3">
-                    <span className="text-lg">{cat.icon}</span>
-                    <div className="flex-1">
-                      <div className="flex justify-between text-sm mb-1">
-                        <span className="text-gray-700">{cat.name}</span>
+                  <div key={cat.name} className="flex items-start gap-3">
+                    <span className="text-lg leading-6">{cat.icon}</span>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-start justify-between gap-3 mb-1">
+                        <span className="text-sm text-gray-700 truncate">{cat.name}</span>
+                        <div className="text-right shrink-0">
+                          <div className="text-sm font-medium text-gray-900">{formatRupiah(cat.value)}</div>
+                          {budget && (
+                            <div className={usageRatio! >= 1
+                              ? "text-xs text-red-600"
+                              : "text-xs text-indigo-600"}
+                            >
+                              Batas: {formatRupiah(budget)} ({usagePercent}%)
+                            </div>
+                          )}
+                        </div>
                       </div>
-                      <div className="h-2 bg-gray-50 rounded-full overflow-hidden relative">
+                      <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
                         <div
-                          className="h-full w-full rounded-full"
-                          style={{
-                            backgroundImage: `linear-gradient(90deg, ${blendHex(cat.color, "#ffffff", 0.75)}, ${blendHex(cat.color, "#ffffff", 0.35)})`,
-                          }}
-                        />
-                        <div
-                          className="absolute top-0 left-0 h-full rounded-full transition-all duration-500"
+                          className="h-full rounded-full transition-all duration-500"
                           style={{
                             width: `${usagePercent}%`,
                             backgroundImage: `linear-gradient(90deg, ${blendHex(cat.color, "#ffffff", 0.15)}, ${darkColor})`,
                           }}
                         />
-                        {budget && remainingPercent > 0 && (
-                          <div
-                            className="absolute top-0 right-0 h-full bg-white"
-                            style={{ width: `${remainingPercent}%`, opacity: 0.95 }}
-                          />
-                        )}
                       </div>
                     </div>
-                    <span className="text-sm font-medium text-gray-900 shrink-0">
-                      {formatRupiah(cat.value)}
-                    </span>
-                    {budget && (
-                      <span className={usageRatio! >= 1
-                        ? "text-xs text-red-600 ml-2"
-                        : "text-xs text-indigo-600 ml-2"}
-                      >
-                        Batas: {formatRupiah(budget)} ({usagePercent}%)
-                      </span>
-                    )}
                     {budget && usageRatio! >= 1 && (
-                      <span className="text-xs text-red-600 font-semibold">Over</span>
+                      <span className="text-xs text-red-600 font-semibold shrink-0">Over</span>
                     )}
                   </div>
                 );

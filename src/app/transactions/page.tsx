@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import Link from "next/link";
 import { useAuth } from "@/context/AuthContext";
 import { useRouter } from "next/navigation";
@@ -21,6 +21,7 @@ export default function TransactionsPage() {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [loadingData, setLoadingData] = useState(true);
   const [filter, setFilter] = useState<"all" | "income" | "expense">("all");
+  const [selectedMonth, setSelectedMonth] = useState<string>("all");
 
   const loadTransactions = useCallback(async () => {
     if (!user) return;
@@ -51,13 +52,32 @@ export default function TransactionsPage() {
     return dateB - dateA; // Newest first
   });
 
-  const filteredTransactions = sortedTransactions.filter(t => {
+  const monthOptions = useMemo(() => {
+    const uniqueMonths = new Set(
+      transactions
+        .map(t => t.date.slice(0, 7))
+        .filter(value => value.length === 7)
+    );
+
+    return Array.from(uniqueMonths).sort((a, b) => b.localeCompare(a));
+  }, [transactions]);
+
+  const monthFilteredTransactions = selectedMonth === "all"
+    ? sortedTransactions
+    : sortedTransactions.filter(t => t.date.slice(0, 7) === selectedMonth);
+
+  const filteredTransactions = monthFilteredTransactions.filter(t => {
     if (filter === "all") return true;
     return t.type === filter;
   });
 
-  const totalIncome = transactions.filter(t => t.type === "income").reduce((sum, t) => sum + t.amount, 0);
-  const totalExpense = transactions.filter(t => t.type === "expense").reduce((sum, t) => sum + t.amount, 0);
+  const totalIncome = monthFilteredTransactions.filter(t => t.type === "income").reduce((sum, t) => sum + t.amount, 0);
+  const totalExpense = monthFilteredTransactions.filter(t => t.type === "expense").reduce((sum, t) => sum + t.amount, 0);
+
+  const formatMonthLabel = (value: string) => {
+    const date = new Date(`${value}-01`);
+    return date.toLocaleDateString("id-ID", { month: "long", year: "numeric" });
+  };
 
   const handleDelete = async (id: string) => {
     if (!user || !confirm("Yakin mau hapus transaksi ini?")) return;
@@ -109,6 +129,22 @@ export default function TransactionsPage() {
       </div>
 
       <div className="px-4 mb-4">
+        <div className="bg-white rounded-xl border border-gray-200 p-3">
+          <label className="block text-xs font-medium text-gray-600 mb-1">Lihat per bulan</label>
+          <select
+            value={selectedMonth}
+            onChange={(e) => setSelectedMonth(e.target.value)}
+            className="w-full px-3 py-2 rounded-lg border border-gray-300 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+          >
+            <option value="all">Semua Bulan</option>
+            {monthOptions.map((month) => (
+              <option key={month} value={month}>{formatMonthLabel(month)}</option>
+            ))}
+          </select>
+        </div>
+      </div>
+
+      <div className="px-4 mb-4">
         <div className="flex gap-2 p-1 bg-gray-100 rounded-xl">
           <button
             onClick={() => setFilter("all")}
@@ -141,7 +177,10 @@ export default function TransactionsPage() {
         {filteredTransactions.length === 0 ? (
           <div className="text-center py-12">
             <span className="text-4xl mb-4 block">📭</span>
-            <p className="text-gray-500">Belum ada transaksi</p>
+            <p className="text-gray-500">
+              Belum ada transaksi
+              {selectedMonth !== "all" ? ` untuk ${formatMonthLabel(selectedMonth)}` : ""}
+            </p>
             <Link 
               href="/"
               className="inline-block mt-4 text-indigo-600 font-medium hover:text-indigo-700"
