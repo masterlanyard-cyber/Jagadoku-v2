@@ -78,7 +78,7 @@ export default function ChartSection({ transactions }: ChartSectionProps) {
     });
 
     return Object.entries(categories)
-      .filter(([_, data]) => data.amount > 0)
+      .filter(([, data]) => data.amount > 0)
       .map(([name, data]) => ({
         name,
         value: data.amount,

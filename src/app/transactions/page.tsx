@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { useAuth } from "@/context/AuthContext";
 import { useRouter } from "next/navigation";
@@ -15,33 +15,14 @@ function formatRupiah(amount: number): string {
   }).format(amount);
 }
 
-const categories = [
-  { id: "makanan", name: "Makanan", icon: "🍔", color: "bg-red-100 text-red-600", type: "expense" },
-  { id: "transportasi", name: "Transportasi", icon: "🚗", color: "bg-blue-100 text-blue-600", type: "expense" },
-  { id: "belanja", name: "Belanja", icon: "🛍️", color: "bg-purple-100 text-purple-600", type: "expense" },
-  { id: "hiburan", name: "Hiburan", icon: "🎬", color: "bg-amber-100 text-amber-600", type: "expense" },
-  { id: "utilitas", name: "Utilitas", icon: "💡", color: "bg-green-100 text-green-600", type: "expense" },
-  { id: "kesehatan", name: "Kesehatan", icon: "💊", color: "bg-pink-100 text-pink-600", type: "expense" },
-  { id: "gaji", name: "Gaji", icon: "💰", color: "bg-green-100 text-green-600", type: "income" },
-  { id: "lainnya", name: "Lainnya", icon: "📦", color: "bg-gray-100 text-gray-600", type: "expense" },
-];
-
 export default function TransactionsPage() {
-  const { user, loading } = useAuth();
+  const { user, loading, needsAuthCode } = useAuth();
   const router = useRouter();
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [loadingData, setLoadingData] = useState(true);
   const [filter, setFilter] = useState<"all" | "income" | "expense">("all");
 
-  useEffect(() => {
-    if (!loading && !user) {
-      router.push("/login");
-    } else if (user) {
-      loadTransactions();
-    }
-  }, [user, loading, router]);
-
-  const loadTransactions = async () => {
+  const loadTransactions = useCallback(async () => {
     if (!user) return;
     try {
       const data = await getTransactions(user.uid);
@@ -51,7 +32,17 @@ export default function TransactionsPage() {
     } finally {
       setLoadingData(false);
     }
-  };
+  }, [user]);
+
+  useEffect(() => {
+    if (!loading && !user) {
+      router.push("/login");
+    } else if (!loading && user && needsAuthCode) {
+      router.push('/auth-code');
+    } else if (user) {
+      void loadTransactions();
+    }
+  }, [user, loading, needsAuthCode, router, loadTransactions]);
 
   // Sort transactions by date (newest first) before filtering
   const sortedTransactions = [...transactions].sort((a, b) => {
@@ -88,6 +79,8 @@ export default function TransactionsPage() {
   }
 
   if (!user) return null;
+
+  if (needsAuthCode) return null;
 
   return (
     <div className="min-h-screen bg-gray-50 pb-24">
@@ -223,7 +216,7 @@ export default function TransactionsPage() {
         <div className="h-1 w-32 bg-gray-300 rounded-full mx-auto mb-2"></div>
       </nav>
 
-      <FloatingActionButton />
+      <FloatingActionButton onAddTransaction={loadTransactions} />
     </div>
   );
 }

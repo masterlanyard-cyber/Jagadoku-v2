@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 
 interface Transaction {
   id: string;
@@ -18,12 +18,14 @@ interface ReminderAlertProps {
 }
 
 export default function ReminderAlert({ transactions, dailyLimit }: ReminderAlertProps) {
-  const [dismissed, setDismissed] = useState(false);
+  const [dismissedKey, setDismissedKey] = useState<string | null>(null);
+
+  const today = new Date();
+  const todayKey = `${today.getFullYear()}-${today.getMonth()}-${today.getDate()}`;
 
   const todayExpense = transactions
     .filter(t => {
       const tDate = new Date(t.date);
-      const today = new Date();
       return t.type === 'expense' && 
              tDate.getDate() === today.getDate() &&
              tDate.getMonth() === today.getMonth() &&
@@ -31,11 +33,9 @@ export default function ReminderAlert({ transactions, dailyLimit }: ReminderAler
     })
     .reduce((sum, t) => sum + t.amount, 0);
 
-  useEffect(() => {
-    setDismissed(false);
-  }, [todayExpense]);
+  const currentExpenseKey = `${todayKey}-${todayExpense}`;
 
-  if (dismissed) return null;
+  if (dismissedKey === currentExpenseKey) return null;
 
   if (!dailyLimit || dailyLimit <= 0) return null;
 
@@ -65,7 +65,7 @@ export default function ReminderAlert({ transactions, dailyLimit }: ReminderAler
             </p>
           </div>
         </div>
-        <button onClick={() => setDismissed(true)} className="text-gray-400 hover:text-gray-600 text-lg">
+        <button onClick={() => setDismissedKey(currentExpenseKey)} className="text-gray-400 hover:text-gray-600 text-lg">
           ×
         </button>
       </div>

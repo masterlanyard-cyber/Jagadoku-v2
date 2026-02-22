@@ -1,7 +1,5 @@
 "use client";
 
-import { useLocalStorage } from "@/hooks/useLocalStorage";
-
 type Transaction = {
   id: string;
   amount: number;
@@ -13,6 +11,8 @@ type Transaction = {
 };
 
 interface OverBudgetWarningProps {
+  transactions: Transaction[];
+  budgets: Record<string, number>;
   className?: string;
 }
 
@@ -28,9 +28,7 @@ const initialCategories = [
   { id: "lainnya", name: "Lainnya", icon: "📦", type: "expense" },
 ];
 
-export default function OverBudgetWarning({ className = "" }: OverBudgetWarningProps) {
-  const [transactions] = useLocalStorage<Transaction[]>("jagadoku-transactions-v2", []);
-  const [budgets] = useLocalStorage("jagadoku-budgets", {} as Record<string, number>);
+export default function OverBudgetWarning({ transactions, budgets, className = "" }: OverBudgetWarningProps) {
 
   const getCategoryData = () => {
     const categoryMap = new Map<string, number>();

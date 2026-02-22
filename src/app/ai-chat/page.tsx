@@ -238,7 +238,7 @@ export default function AIChatPage() {
       {/* Header */}
       <header className="bg-indigo-600 text-white sticky top-0 z-10 shadow-lg">
         <div className="flex items-center gap-3 h-14 px-4">
-          <Link href="/dashboard" className="p-2 -ml-2 hover:bg-white/20 rounded-full transition-colors">
+          <Link href="/" className="p-2 -ml-2 hover:bg-white/20 rounded-full transition-colors">
             <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
             </svg>

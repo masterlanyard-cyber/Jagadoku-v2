@@ -2,10 +2,11 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
-import { useLocalStorage } from "@/hooks/useLocalStorage";
 import { useTransactions } from "@/hooks/useTransactions";
+import { useBudgets } from "@/hooks/useBudgets";
 import ChartSection from "@/components/ChartSection";
 import ReminderAlert from "@/components/ReminderAlert";
 import FloatingActionButton from "@/components/FloatingActionButton";
@@ -74,27 +75,11 @@ type Transaction = {
 
 const initialTransactions: Transaction[] = [];
 
-const initialCategories = [
-  { id: "makanan", name: "Makanan", icon: "🍔", type: "expense" },
-  { id: "transportasi", name: "Transportasi", icon: "🚗", type: "expense" },
-  { id: "belanja", name: "Belanja", icon: "🛍️", type: "expense" },
-  { id: "hiburan", name: "Hiburan", icon: "🎬", type: "expense" },
-  { id: "utilitas", name: "Utilitas", icon: "💡", type: "expense" },
-  { id: "kesehatan", name: "Kesehatan", icon: "💊", type: "expense" },
-  { id: "gaji", name: "Gaji", icon: "💰", type: "income" },
-  { id: "bonus", name: "Bonus", icon: "🎁", type: "income" },
-  { id: "lainnya", name: "Lainnya", icon: "📦", type: "expense" },
-];
-
 export default function DashboardPage() {
   const router = useRouter();
-  const { user, loading, logout } = useAuth();
-  const { transactions, addTransaction, deleteTransaction, isLoadingFromFirestore } = useTransactions(initialTransactions);
-  const [budgets, setBudgets] = useLocalStorage("jagadoku-budgets", {} as Record<string, number>);
-  const [isLoaded, setIsLoaded] = useState(false);
-  const [balance, setBalance] = useState(0);
-  const [income, setIncome] = useState(0);
-  const [expense, setExpense] = useState(0);
+  const { user, loading, logout, needsAuthCode } = useAuth();
+  const { transactions, addTransaction, isLoadingFromFirestore } = useTransactions(initialTransactions);
+  const { budgets, loadingBudgets } = useBudgets();
   const [showModal, setShowModal] = useState<"income" | "expense" | null>(null);
 
   useEffect(() => {
@@ -103,18 +88,16 @@ export default function DashboardPage() {
       router.push("/login");
       return;
     }
-    
-    // Set isLoaded to true only when not loading from Firestore or when user is not logged in
-    if (!isLoadingFromFirestore) {
-      setIsLoaded(true);
+
+    if (!loading && user && needsAuthCode) {
+      router.push('/auth-code');
+      return;
     }
-    
-    const inc = transactions.filter(t => t.type === "income").reduce((sum, t) => sum + t.amount, 0);
-    const exp = transactions.filter(t => t.type === "expense").reduce((sum, t) => sum + t.amount, 0);
-    setIncome(inc);
-    setExpense(exp);
-    setBalance(inc - exp);
-  }, [user, loading, transactions, isLoadingFromFirestore, router]);
+  }, [user, loading, needsAuthCode, router]);
+
+  const income = transactions.filter(t => t.type === "income").reduce((sum, t) => sum + t.amount, 0);
+  const expense = transactions.filter(t => t.type === "expense").reduce((sum, t) => sum + t.amount, 0);
+  const balance = income - expense;
 
   // Sort transactions by date (newest first) and get recent 5
   const sortedAllTransactions = [...transactions].sort((a, b) => {
@@ -126,10 +109,7 @@ export default function DashboardPage() {
   const displayName = user?.displayName
     || user?.email?.split("@")[0]
     || "User";
-  const totalFlow = income + expense;
-  const incomePercent = totalFlow ? Math.round((income / totalFlow) * 100) : 0;
   const expensePercent = balance ? Math.round((expense / Math.abs(balance)) * 100) : 0;
-  const balancePercent = income ? Math.round((balance / income) * 100) : 0;
 
   const getCategoryData = () => {
     const expenses = transactions.filter(t => t.type === "expense");
@@ -153,7 +133,7 @@ export default function DashboardPage() {
     });
 
     return Object.entries(categories)
-      .filter(([_, data]) => data.amount > 0)
+      .filter(([, data]) => data.amount > 0)
       .map(([name, data]) => ({
         name,
         value: data.amount,
@@ -166,7 +146,6 @@ export default function DashboardPage() {
 
   const categoryData = getCategoryData();
   const topCategory = categoryData[0];
-  const overBudgetCategories = categoryData.filter(cat => budgets[cat.name] && cat.value > budgets[cat.name]);
 
   const handleLogout = async () => {
     await logout();
@@ -175,7 +154,11 @@ export default function DashboardPage() {
 
 
 
-  if (loading || !isLoaded) {
+  if (loading || isLoadingFromFirestore) {
+    return <div className="min-h-screen bg-gray-50 flex items-center justify-center"><div className="w-16 h-16 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin"></div></div>;
+  }
+
+  if (loadingBudgets) {
     return <div className="min-h-screen bg-gray-50 flex items-center justify-center"><div className="w-16 h-16 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin"></div></div>;
   }
 
@@ -183,18 +166,24 @@ export default function DashboardPage() {
     return null;
   }
 
+  if (needsAuthCode) {
+    return null;
+  }
+
   return (
     <div className="min-h-screen bg-gray-50 pb-24">
       <header className="bg-white border-b border-gray-200 sticky top-0 z-10">
         <div className="px-4 pt-4 pb-0">
-          <OverBudgetWarning className="mb-3" />
+          <OverBudgetWarning transactions={transactions} budgets={budgets} className="mb-3" />
         </div>
         <div className="flex items-center justify-between h-14 px-4">
           <div className="flex items-center gap-2">
             <div className="w-12 h-12 rounded-lg overflow-hidden bg-white">
-              <img
+              <Image
                 src="/icons/android-chrome-192x192.png"
                 alt="Jagadoku"
+                width={48}
+                height={48}
                 className="w-full h-full object-contain"
               />
             </div>
@@ -346,7 +335,6 @@ export default function DashboardPage() {
                   ? Math.min(100, Math.round(usageRatio! * 100))
                   : cat.percentage;
                 const remainingPercent = Math.max(0, 100 - usagePercent);
-                const lightColor = blendHex(cat.color, "#ffffff", 0.55);
                 const darkColor = blendHex(cat.color, "#000000", 0.25);
 
                 return (
@@ -470,7 +458,7 @@ export default function DashboardPage() {
         <div className="h-1 w-32 bg-gray-300 rounded-full mx-auto mb-2"></div>
       </nav>
 
-      <FloatingActionButton />
+      <FloatingActionButton onCreateTransaction={addTransaction} />
     </div>
   );
 }

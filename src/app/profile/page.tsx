@@ -7,19 +7,12 @@ import { useAuth } from "@/context/AuthContext";
 
 export default function ProfilePage() {
   const router = useRouter();
-  const { user, loading, logout, changePassword, updateDisplayName } = useAuth();
+  const { user, loading, logout, updateDisplayName, needsAuthCode } = useAuth();
   
   const [displayName, setDisplayName] = useState(user?.displayName || "");
   const [editingName, setEditingName] = useState(false);
   const [nameError, setNameError] = useState("");
   const [nameSuccess, setNameSuccess] = useState("");
-
-  const [oldPassword, setOldPassword] = useState("");
-  const [newPassword, setNewPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
-  const [passwordError, setPasswordError] = useState("");
-  const [passwordSuccess, setPasswordSuccess] = useState("");
-  const [changingPassword, setChangingPassword] = useState(false);
 
   if (loading) {
     return (
@@ -31,6 +24,11 @@ export default function ProfilePage() {
 
   if (!user) {
     router.push("/login");
+    return null;
+  }
+
+  if (needsAuthCode) {
+    router.push('/auth-code');
     return null;
   }
 
@@ -49,47 +47,9 @@ export default function ProfilePage() {
       setNameSuccess("Nama berhasil diubah!");
       setEditingName(false);
       setTimeout(() => setNameSuccess(""), 3000);
-    } catch (error: any) {
-      setNameError(error.message || "Gagal mengubah nama");
-    }
-  };
-
-  const handleChangePassword = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setPasswordError("");
-    setPasswordSuccess("");
-
-    if (!oldPassword) {
-      setPasswordError("Masukkan password lama!");
-      return;
-    }
-
-    if (newPassword.length < 6) {
-      setPasswordError("Password baru minimal 6 karakter!");
-      return;
-    }
-
-    if (newPassword !== confirmPassword) {
-      setPasswordError("Password baru dan konfirmasi tidak cocok!");
-      return;
-    }
-
-    setChangingPassword(true);
-    try {
-      await changePassword(oldPassword, newPassword);
-      setPasswordSuccess("Password berhasil diubah!");
-      setOldPassword("");
-      setNewPassword("");
-      setConfirmPassword("");
-      setTimeout(() => setPasswordSuccess(""), 3000);
-    } catch (error: any) {
-      if (error.code === "auth/wrong-password" || error.message?.includes("password")) {
-        setPasswordError("Password lama tidak sesuai!");
-      } else {
-        setPasswordError(error.message || "Gagal mengubah password");
-      }
-    } finally {
-      setChangingPassword(false);
+    } catch (error: unknown) {
+      const message = typeof error === 'object' && error && 'message' in error ? (error as { message?: string }).message : undefined;
+      setNameError(message || "Gagal mengubah nama");
     }
   };
 
@@ -117,6 +77,7 @@ export default function ProfilePage() {
             </div>
             <h2 className="text-xl font-bold text-gray-900">{user.displayName || "Pengguna"}</h2>
             <p className="text-gray-500 text-sm">{user.email}</p>
+            <p className="text-gray-400 text-xs mt-1">Masuk dengan Google</p>
           </div>
 
           {/* Edit Name Section */}
@@ -169,62 +130,6 @@ export default function ProfilePage() {
             )}
           </div>
 
-          {/* Change Password Section */}
-          <div className="border-t pt-6">
-            <h3 className="font-semibold text-gray-900 mb-4">Ganti Password</h3>
-            
-            {passwordError && <div className="p-3 bg-red-100 text-red-700 rounded-xl text-sm mb-4">{passwordError}</div>}
-            {passwordSuccess && <div className="p-3 bg-green-100 text-green-700 rounded-xl text-sm mb-4">{passwordSuccess}</div>}
-
-            <form onSubmit={handleChangePassword} className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Password Lama</label>
-                <input
-                  type="password"
-                  value={oldPassword}
-                  onChange={(e) => setOldPassword(e.target.value)}
-                  placeholder="Masukkan password lama"
-                  disabled={changingPassword}
-                  className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-indigo-500 outline-none transition-all disabled:bg-gray-100"
-                  required
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Password Baru (min 6 karakter)</label>
-                <input
-                  type="password"
-                  value={newPassword}
-                  onChange={(e) => setNewPassword(e.target.value)}
-                  placeholder="Masukkan password baru"
-                  disabled={changingPassword}
-                  className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-indigo-500 outline-none transition-all disabled:bg-gray-100"
-                  required
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Konfirmasi Password Baru</label>
-                <input
-                  type="password"
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                  placeholder="Konfirmasi password baru"
-                  disabled={changingPassword}
-                  className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-indigo-500 outline-none transition-all disabled:bg-gray-100"
-                  required
-                />
-              </div>
-
-              <button
-                type="submit"
-                disabled={!oldPassword || !newPassword || !confirmPassword || changingPassword}
-                className="w-full py-3 bg-indigo-600 hover:bg-indigo-700 disabled:bg-gray-300 text-white font-semibold rounded-xl transition-all"
-              >
-                {changingPassword ? "Mengubah..." : "Simpan Password Baru"}
-              </button>
-            </form>
-          </div>
         </div>
 
         {/* Logout Button */}

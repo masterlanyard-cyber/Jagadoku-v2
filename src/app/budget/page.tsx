@@ -1,8 +1,12 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
 import FloatingActionButton from "@/components/FloatingActionButton";
+import { useAuth } from "@/context/AuthContext";
+import { useRouter } from "next/navigation";
+import { useTransactions } from "@/hooks/useTransactions";
+import { useBudgets } from "@/hooks/useBudgets";
 
 // Format rupiah
 function formatRupiah(amount: number): string {
@@ -13,18 +17,7 @@ function formatRupiah(amount: number): string {
   }).format(amount);
 }
 
-// Tipe data
-interface Transaction {
-  id: string;
-  amount: number;
-  type: "income" | "expense";
-  category: string;
-  description: string;
-  date: string;
-  icon: string;
-}
-
-interface Budget {
+interface BudgetItem {
   category: string;
   icon: string;
   color: string;
@@ -32,10 +25,7 @@ interface Budget {
   spent: number;
 }
 
-const STORAGE_KEY_TRANSACTIONS = "jagadoku-transactions-v2";
-const STORAGE_KEY_BUDGETS = "jagadoku-budgets";
-
-const defaultBudgets: Budget[] = [
+const defaultBudgets: BudgetItem[] = [
   { category: "Makanan", icon: "🍔", color: "#ef4444", budgetAmount: 0, spent: 0 },
   { category: "Transportasi", icon: "🚗", color: "#3b82f6", budgetAmount: 0, spent: 0 },
   { category: "Belanja", icon: "🛍️", color: "#8b5cf6", budgetAmount: 0, spent: 0 },
@@ -45,101 +35,45 @@ const defaultBudgets: Budget[] = [
   { category: "Lainnya", icon: "📦", color: "#6b7280", budgetAmount: 0, spent: 0 },
 ];
 
-// Hook localStorage khusus untuk budget
-function useBudgetStorage() {
-  const [budgets, setBudgetsState] = useState<Budget[]>(defaultBudgets);
-  const [isLoaded, setIsLoaded] = useState(false);
-
-  // Load dari localStorage saat mount
-  useEffect(() => {
-    if (typeof window === 'undefined') return;
-    
-    try {
-      const saved = localStorage.getItem(STORAGE_KEY_BUDGETS);
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        // Support both record and array shapes
-        const asRecord = Array.isArray(parsed)
-          ? parsed.reduce((acc: Record<string, number>, item: Budget) => {
-              acc[item.category] = item.budgetAmount;
-              return acc;
-            }, {})
-          : parsed;
-
-        // Merge dengan default untuk pastikan semua kategori ada
-        const merged = defaultBudgets.map(def => {
-          const foundAmount = asRecord[def.category];
-          return foundAmount !== undefined ? { ...def, budgetAmount: foundAmount } : def;
-        });
-        setBudgetsState(merged);
-      }
-    } catch (e) {
-      console.error("Error loading budgets:", e);
-    }
-    setIsLoaded(true);
-  }, []);
-
-  // Save ke localStorage setiap berubah
-  const setBudgets = useCallback((newBudgets: Budget[] | ((prev: Budget[]) => Budget[])) => {
-    setBudgetsState(prev => {
-      const updated = typeof newBudgets === 'function' ? newBudgets(prev) : newBudgets;
-      if (typeof window !== 'undefined') {
-        const asRecord = updated.reduce((acc: Record<string, number>, item) => {
-          acc[item.category] = item.budgetAmount;
-          return acc;
-        }, {});
-        localStorage.setItem(STORAGE_KEY_BUDGETS, JSON.stringify(asRecord));
-      }
-      return updated;
-    });
-  }, []);
-
-  return { budgets, setBudgets, isLoaded };
-}
-
-// Hook untuk transaksi (read-only di sini)
-function useTransactions() {
-  const [transactions, setTransactions] = useState<Transaction[]>([]);
-
-  useEffect(() => {
-    if (typeof window === 'undefined') return;
-    
-    try {
-      const saved = localStorage.getItem(STORAGE_KEY_TRANSACTIONS);
-      if (saved) {
-        setTransactions(JSON.parse(saved));
-      }
-    } catch (e) {
-      console.error("Error loading transactions:", e);
-    }
-  }, []);
-
-  return transactions;
-}
-
 export default function BudgetPage() {
-  const { budgets, setBudgets, isLoaded } = useBudgetStorage();
-  const transactions = useTransactions();
+  const router = useRouter();
+  const { user, loading, needsAuthCode } = useAuth();
+  const { transactions, addTransaction, isLoadingFromFirestore } = useTransactions([]);
+  const { budgets, loadingBudgets, setBudget } = useBudgets();
   
   // Modal state
   const [showModal, setShowModal] = useState(false);
-  const [editingBudget, setEditingBudget] = useState<Budget | null>(null);
+  const [editingBudget, setEditingBudget] = useState<BudgetItem | null>(null);
   const [newBudgetAmount, setNewBudgetAmount] = useState("");
 
-  // Update spent dari transaksi
   useEffect(() => {
-    if (!isLoaded || transactions.length === 0) return;
+    if (!loading && !user) {
+      router.push('/login');
+      return;
+    }
 
-    setBudgets(prev => prev.map(budget => {
-      const spent = transactions
-        .filter(t => t.type === "expense" && t.category === budget.category)
-        .reduce((sum, t) => sum + t.amount, 0);
-      return { ...budget, spent };
-    }));
-  }, [transactions, isLoaded]);
+    if (!loading && user && needsAuthCode) {
+      router.push('/auth-code');
+    }
+  }, [loading, user, needsAuthCode, router]);
 
-  const totalBudget = budgets.reduce((sum, b) => sum + b.budgetAmount, 0);
-  const totalSpent = budgets.reduce((sum, b) => sum + b.spent, 0);
+  const spentByCategory = useMemo(() => {
+    return transactions
+      .filter(t => t.type === "expense")
+      .reduce((acc, t) => {
+        acc[t.category] = (acc[t.category] || 0) + t.amount;
+        return acc;
+      }, {} as Record<string, number>);
+  }, [transactions]);
+
+  const budgetItems: BudgetItem[] = defaultBudgets.map(item => ({
+    ...item,
+    budgetAmount: budgets[item.category] || 0,
+    spent: spentByCategory[item.category] || 0,
+  }));
+
+  const totalBudget = budgetItems.reduce((sum, b) => sum + b.budgetAmount, 0);
+  const totalSpent = budgetItems.reduce((sum, b) => sum + b.spent, 0);
   const totalRemaining = totalBudget - totalSpent;
   const overallPercentage = totalBudget > 0 ? (totalSpent / totalBudget) * 100 : 0;
 
@@ -156,7 +90,7 @@ export default function BudgetPage() {
     return "🟢 Aman";
   };
 
-  const handleEditBudget = (budget: Budget) => {
+  const handleEditBudget = (budget: BudgetItem) => {
     setEditingBudget(budget);
     setNewBudgetAmount(budget.budgetAmount.toString());
     setShowModal(true);
@@ -171,19 +105,19 @@ export default function BudgetPage() {
       return;
     }
 
-    setBudgets(prev => prev.map(b => 
-      b.category === editingBudget.category 
-        ? { ...b, budgetAmount: amount }
-        : b
-    ));
+    void setBudget(editingBudget.category, amount);
     
     setShowModal(false);
     setEditingBudget(null);
     setNewBudgetAmount("");
   };
 
-  if (!isLoaded) {
+  if (loading || loadingBudgets || isLoadingFromFirestore) {
     return <div className="min-h-screen bg-gray-50 flex items-center justify-center">Loading...</div>;
+  }
+
+  if (!user || needsAuthCode) {
+    return null;
   }
 
   return (
@@ -243,7 +177,7 @@ export default function BudgetPage() {
         <div>
           <h3 className="font-semibold text-gray-900 mb-3">Anggaran per Kategori</h3>
           <div className="space-y-3">
-            {budgets.map((budget) => {
+            {budgetItems.map((budget) => {
               const percentage = budget.budgetAmount > 0 
                 ? (budget.spent / budget.budgetAmount) * 100 
                 : 0;
@@ -456,7 +390,7 @@ export default function BudgetPage() {
         <div className="h-1 w-32 bg-gray-300 rounded-full mx-auto mb-2"></div>
       </nav>
 
-      <FloatingActionButton />
+      <FloatingActionButton onCreateTransaction={addTransaction} />
     </div>
   );
 }

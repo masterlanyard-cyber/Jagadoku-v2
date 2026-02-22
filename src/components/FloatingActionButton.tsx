@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { useAuth } from "@/context/AuthContext";
-import { useLocalStorage } from "@/hooks/useLocalStorage";
 import { addTransaction as addTransactionFirestore } from "@/lib/firestore";
 
 type Transaction = {
@@ -18,6 +17,7 @@ type Transaction = {
 interface FloatingActionButtonProps {
   onAddTransaction?: () => void;
   onTransactionAdded?: (transaction: Transaction) => void;
+  onCreateTransaction?: (transaction: Omit<Transaction, "id">) => Promise<void> | void;
 }
 
 const initialCategories = [
@@ -32,7 +32,7 @@ const initialCategories = [
   { id: "lainnya", name: "Lainnya", icon: "📦", type: "expense" },
 ];
 
-export default function FloatingActionButton({ onAddTransaction, onTransactionAdded }: FloatingActionButtonProps) {
+export default function FloatingActionButton({ onAddTransaction, onTransactionAdded, onCreateTransaction }: FloatingActionButtonProps) {
   const { user } = useAuth();
   const [showAddModal, setShowAddModal] = useState(false);
   const [formType, setFormType] = useState<"income" | "expense">("expense");
@@ -50,8 +50,6 @@ export default function FloatingActionButton({ onAddTransaction, onTransactionAd
   };
   const [formDate, setFormDate] = useState(getTodayDate());
   const [isSubmitting, setIsSubmitting] = useState(false);
-  
-  const [transactions, setTransactions] = useLocalStorage<Transaction[]>("jagadoku-transactions-v2", []);
 
   const getCategoryIcon = (categoryName: string) => {
     const cat = initialCategories.find(c => c.name === categoryName);
@@ -69,8 +67,7 @@ export default function FloatingActionButton({ onAddTransaction, onTransactionAd
     setIsSubmitting(true);
 
     try {
-      const newTransaction: Transaction = {
-        id: Date.now().toString(),
+      const transactionPayload: Omit<Transaction, "id"> = {
         amount: parseInt(formAmount),
         type: formType,
         category: formCategory,
@@ -78,28 +75,34 @@ export default function FloatingActionButton({ onAddTransaction, onTransactionAd
         date: formDate,
         icon: getCategoryIcon(formCategory),
       };
+      const localFallbackId = Date.now().toString();
+      let createdId = localFallbackId;
 
-      // Save to Firestore if user is logged in
-      if (user) {
-        try {
-          const firestoreId = await addTransactionFirestore(user.uid, {
-            amount: newTransaction.amount,
-            type: newTransaction.type,
-            category: newTransaction.category,
-            description: newTransaction.description,
-            date: newTransaction.date,
-            icon: newTransaction.icon,
-            note: newTransaction.description,
-          });
-          newTransaction.id = firestoreId;
-        } catch (error) {
-          console.error("Error saving to Firestore:", error);
-          // Continue with localStorage if Firestore fails
+      if (onCreateTransaction) {
+        await onCreateTransaction(transactionPayload);
+      } else {
+        if (user) {
+          try {
+            const firestoreId = await addTransactionFirestore(user.uid, {
+              amount: transactionPayload.amount,
+              type: transactionPayload.type,
+              category: transactionPayload.category,
+              description: transactionPayload.description,
+              date: transactionPayload.date,
+              icon: transactionPayload.icon,
+              note: transactionPayload.description,
+            });
+            createdId = firestoreId;
+          } catch (error) {
+            console.error("Error saving to Firestore:", error);
+          }
         }
       }
 
-      // Update localStorage
-      setTransactions([newTransaction, ...transactions]);
+      const newTransaction: Transaction = {
+        ...transactionPayload,
+        id: createdId,
+      };
       
       // Reset form
       setFormAmount("");

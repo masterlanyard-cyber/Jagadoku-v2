@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 
 export interface User {
   id: string;
@@ -8,18 +8,15 @@ export interface User {
 }
 
 export function useUser() {
-  const [user, setUserState] = useState<User | null>(null);
-  const [isLoaded, setIsLoaded] = useState(false);
-
-  useEffect(() => {
-    if (typeof window === 'undefined') return;
-    
-    const saved = localStorage.getItem("jagadoku-active-user");
-    if (saved) {
-      setUserState(JSON.parse(saved));
+  const [user, setUserState] = useState<User | null>(() => {
+    if (typeof window === 'undefined') {
+      return null;
     }
-    setIsLoaded(true);
-  }, []);
+
+    const saved = localStorage.getItem("jagadoku-active-user");
+    return saved ? JSON.parse(saved) : null;
+  });
+  const isLoaded = true;
 
   const setUser = (user: User | null) => {
     setUserState(user);

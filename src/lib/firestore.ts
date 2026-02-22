@@ -9,7 +9,9 @@ import {
   query, 
   orderBy,
   Timestamp,
-  where
+  where,
+  getDoc,
+  setDoc
 } from 'firebase/firestore';
 
 export interface Transaction {
@@ -104,4 +106,29 @@ export const getTodayExpenses = async (userId: string): Promise<number> => {
 
   const snapshot = await getDocs(q);
   return snapshot.docs.reduce((sum, doc) => sum + doc.data().amount, 0);
+};
+
+const userBudgetsDocRef = (userId: string) => doc(db, 'users', userId, 'meta', 'budgets');
+
+export const getUserBudgets = async (userId: string): Promise<Record<string, number>> => {
+  const snapshot = await getDoc(userBudgetsDocRef(userId));
+  if (!snapshot.exists()) {
+    return {};
+  }
+
+  const data = snapshot.data() as Record<string, unknown>;
+  return Object.entries(data).reduce((acc, [key, value]) => {
+    if (typeof value === 'number') {
+      acc[key] = value;
+    }
+    return acc;
+  }, {} as Record<string, number>);
+};
+
+export const setUserBudget = async (userId: string, category: string, amount: number) => {
+  await setDoc(
+    userBudgetsDocRef(userId),
+    { [category]: amount },
+    { merge: true }
+  );
 };

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 
 export default function Home() {
   return (
@@ -6,9 +7,11 @@ export default function Home() {
       <div className="text-center space-y-6 max-w-md">
         <div className="flex items-center justify-center gap-2 mb-8">
           <div className="w-12 h-12 rounded-xl overflow-hidden bg-white">
-            <img
+            <Image
               src="/icons/android-chrome-192x192.png"
               alt="Jagadoku"
+              width={48}
+              height={48}
               className="w-full h-full object-contain"
             />
           </div>
@@ -28,14 +31,7 @@ export default function Home() {
             href="/login"
             className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-4 px-8 rounded-xl transition-all"
           >
-            Login / Daftar
-          </Link>
-          
-          <Link 
-            href="/dashboard"
-            className="w-full bg-white border-2 border-gray-200 text-gray-700 font-semibold py-4 px-8 rounded-xl hover:bg-gray-50 transition-all"
-          >
-            Masuk Tanpa Login
+            Masuk dengan Google
           </Link>
         </div>
       </div>
