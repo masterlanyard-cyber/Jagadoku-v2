@@ -327,7 +327,7 @@ export default function DashboardPage() {
                 const budget = budgets[cat.name];
                 const usageRatio = budget ? cat.value / budget : null;
                 const usagePercent = budget
-                  ? Math.min(100, Math.round(usageRatio * 100))
+                  ? Math.min(100, Math.round(usageRatio! * 100))
                   : cat.percentage;
                 const remainingPercent = Math.max(0, 100 - usagePercent);
                 const lightColor = blendHex(cat.color, "#ffffff", 0.55);
@@ -366,14 +366,14 @@ export default function DashboardPage() {
                       {formatRupiah(cat.value)}
                     </span>
                     {budget && (
-                      <span className={usageRatio >= 1
+                      <span className={usageRatio! >= 1
                         ? "text-xs text-red-600 ml-2"
                         : "text-xs text-indigo-600 ml-2"}
                       >
                         Batas: {formatRupiah(budget)} ({usagePercent}%)
                       </span>
                     )}
-                    {budget && usageRatio >= 1 && (
+                    {budget && usageRatio! >= 1 && (
                       <span className="text-xs text-red-600 font-semibold">Over</span>
                     )}
                   </div>
