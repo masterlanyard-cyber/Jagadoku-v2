@@ -10,8 +10,12 @@ export const metadata: Metadata = {
   title: "JagaDoku - Asisten Finansial AI",
   description: "Kelola keuangan Anda dengan AI",
   icons: {
-    icon: "/jaga-logo.png",
-    apple: "/jaga-logo.png",
+    icon: [
+      { url: '/favicon.ico', sizes: 'any' },
+      { url: '/jaga-logo.png', sizes: '32x32', type: 'image/png' },
+      { url: '/jaga-logo.png', sizes: '16x16', type: 'image/png' },
+    ],
+    apple: '/jaga-logo.png',
   },
 };
 
