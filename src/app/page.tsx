@@ -24,8 +24,11 @@ function formatRupiah(amount: number): string {
 function formatRelativeDate(dateString: string): string {
   const date = parseLocalDate(dateString);
   const now = new Date();
-  const diffTime = Math.abs(now.getTime() - date.getTime());
-  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+  const dateOnly = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+  const nowOnly = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const diffTime = nowOnly.getTime() - dateOnly.getTime();
+  const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
 
   if (diffDays === 0) return "Hari ini";
   if (diffDays === 1) return "Kemarin";
