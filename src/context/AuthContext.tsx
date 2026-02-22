@@ -7,7 +7,11 @@ import {
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
   signOut,
-  User 
+  User,
+  updatePassword,
+  reauthenticateWithCredential,
+  EmailAuthProvider,
+  updateProfile
 } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
 
@@ -17,6 +21,8 @@ interface AuthContextType {
   login: (email: string, password: string) => Promise<void>;
   register: (email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
+  changePassword: (oldPassword: string, newPassword: string) => Promise<void>;
+  updateDisplayName: (displayName: string) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -45,8 +51,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     await signOut(auth);
   };
 
+  const changePassword = async (oldPassword: string, newPassword: string) => {
+    if (!user?.email) throw new Error('User not authenticated');
+    
+    // Reauthenticate with old password
+    const credential = EmailAuthProvider.credential(user.email, oldPassword);
+    await reauthenticateWithCredential(user, credential);
+    
+    // Update to new password
+    await updatePassword(user, newPassword);
+  };
+
+  const updateDisplayName = async (displayName: string) => {
+    if (!user) throw new Error('User not authenticated');
+    await updateProfile(user, { displayName });
+    setUser({ ...user, displayName });
+  };
+
   return (
-    <AuthContext.Provider value={{ user, loading, login, register, logout }}>
+    <AuthContext.Provider value={{ user, loading, login, register, logout, changePassword, updateDisplayName }}>
       {children}
     </AuthContext.Provider>
   );
