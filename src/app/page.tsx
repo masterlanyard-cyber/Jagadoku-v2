@@ -88,7 +88,7 @@ const initialCategories = [
 
 export default function DashboardPage() {
   const router = useRouter();
-  const { user, logout } = useAuth();
+  const { user, loading, logout } = useAuth();
   const { transactions, addTransaction, deleteTransaction, isLoadingFromFirestore } = useTransactions(initialTransactions);
   const [budgets, setBudgets] = useLocalStorage("jagadoku-budgets", {} as Record<string, number>);
   const [isLoaded, setIsLoaded] = useState(false);
@@ -98,6 +98,12 @@ export default function DashboardPage() {
   const [showModal, setShowModal] = useState<"income" | "expense" | null>(null);
 
   useEffect(() => {
+    // Redirect to login if user is not authenticated
+    if (!loading && !user) {
+      router.push("/login");
+      return;
+    }
+    
     // Set isLoaded to true only when not loading from Firestore or when user is not logged in
     if (!isLoadingFromFirestore) {
       setIsLoaded(true);
@@ -108,7 +114,7 @@ export default function DashboardPage() {
     setIncome(inc);
     setExpense(exp);
     setBalance(inc - exp);
-  }, [transactions, isLoadingFromFirestore]);
+  }, [user, loading, transactions, isLoadingFromFirestore, router]);
 
   // Sort transactions by date (newest first) and get recent 5
   const sortedAllTransactions = [...transactions].sort((a, b) => {
@@ -164,13 +170,17 @@ export default function DashboardPage() {
 
   const handleLogout = async () => {
     await logout();
-    router.push("/login/");
+    router.push("/login");
   };
 
 
 
-  if (!isLoaded) {
-    return <div className="min-h-screen bg-gray-50 flex items-center justify-center">Loading...</div>;
+  if (loading || !isLoaded) {
+    return <div className="min-h-screen bg-gray-50 flex items-center justify-center"><div className="w-16 h-16 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin"></div></div>;
+  }
+
+  if (!user) {
+    return null;
   }
 
   return (
