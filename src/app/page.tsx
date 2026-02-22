@@ -11,6 +11,7 @@ import ChartSection from "@/components/ChartSection";
 import ReminderAlert from "@/components/ReminderAlert";
 import FloatingActionButton from "@/components/FloatingActionButton";
 import OverBudgetWarning from "@/components/OverBudgetWarning";
+import { parseLocalDate } from "@/lib/date";
 
 function formatRupiah(amount: number): string {
   return new Intl.NumberFormat("id-ID", {
@@ -21,7 +22,7 @@ function formatRupiah(amount: number): string {
 }
 
 function formatRelativeDate(dateString: string): string {
-  const date = new Date(dateString);
+  const date = parseLocalDate(dateString);
   const now = new Date();
   const diffTime = Math.abs(now.getTime() - date.getTime());
   const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
@@ -101,8 +102,8 @@ export default function DashboardPage() {
 
   // Sort transactions by date (newest first) and get recent 5
   const sortedAllTransactions = [...transactions].sort((a, b) => {
-    const dateA = new Date(a.date).getTime();
-    const dateB = new Date(b.date).getTime();
+    const dateA = parseLocalDate(a.date).getTime();
+    const dateB = parseLocalDate(b.date).getTime();
     return dateB - dateA; // Newest first
   });
   const recentTransactions = sortedAllTransactions.slice(0, 5);

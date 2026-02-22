@@ -14,6 +14,7 @@ import {
   Pie,
   Cell
 } from 'recharts';
+import { formatDateInputLocal, parseLocalDate } from '@/lib/date';
 
 interface Transaction {
   id: string;
@@ -34,7 +35,7 @@ export default function ChartSection({ transactions }: ChartSectionProps) {
     return Array.from({ length: 7 }, (_, i) => {
       const date = new Date();
       date.setDate(date.getDate() - i);
-      return date.toISOString().split('T')[0];
+      return formatDateInputLocal(date);
     }).reverse();
   }, []);
 
@@ -49,7 +50,7 @@ export default function ChartSection({ transactions }: ChartSectionProps) {
         .reduce((sum, t) => sum + t.amount, 0);
 
       return {
-        name: new Date(dateStr).toLocaleDateString('id-ID', { weekday: 'short', day: 'numeric' }),
+        name: parseLocalDate(dateStr).toLocaleDateString('id-ID', { weekday: 'short', day: 'numeric' }),
         Pemasukan: income,
         Pengeluaran: expense,
       };

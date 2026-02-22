@@ -1,5 +1,6 @@
 // src/lib/firestore.ts
 import { db } from './firebase';
+import { formatDateInputLocal, parseLocalDate } from './date';
 import { 
   collection, 
   addDoc, 
@@ -30,8 +31,7 @@ export const addTransaction = async (userId: string, data: Omit<Transaction, 'id
   const transactionsRef = collection(db, 'users', userId, 'transactions');
   
   // Parse date string (YYYY-MM-DD) as local date, NOT UTC
-  const [y, m, d] = data.date.split('-').map(Number);
-  const localDate = new Date(y, m - 1, d); // month is 0-indexed
+  const localDate = parseLocalDate(data.date);
   
   const docRef = await addDoc(transactionsRef, {
     ...data,
@@ -51,7 +51,7 @@ export const getTransactions = async (userId: string): Promise<Transaction[]> =>
     id: doc.id,
     amount: doc.data().amount,
     category: doc.data().category,
-    date: doc.data().date.toDate().toISOString().split('T')[0],
+    date: formatDateInputLocal(doc.data().date.toDate()),
     note: doc.data().note,
     type: doc.data().type,
     createdAt: doc.data().createdAt?.toDate(),
@@ -68,7 +68,7 @@ export const deleteTransaction = async (userId: string, transactionId: string) =
 export const exportToCSV = (transactions: Transaction[]) => {
   const headers = ['Tanggal', 'Tipe', 'Kategori', 'Jumlah', 'Catatan'];
   const rows = transactions.map(t => [
-      new Date(t.date).toLocaleDateString('id-ID'),
+      parseLocalDate(t.date).toLocaleDateString('id-ID'),
     t.type === 'income' ? 'Pemasukan' : 'Pengeluaran',
     t.category,
     t.amount,
@@ -83,7 +83,7 @@ export const exportToCSV = (transactions: Transaction[]) => {
   const url = window.URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
-  a.download = `jagadoku-${new Date().toISOString().split('T')[0]}.csv`;
+  a.download = `jagadoku-${formatDateInputLocal(new Date())}.csv`;
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);

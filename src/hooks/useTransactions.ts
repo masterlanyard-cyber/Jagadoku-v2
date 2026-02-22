@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { useLocalStorage } from "@/hooks/useLocalStorage";
+import { parseLocalDate } from "@/lib/date";
 import { 
   addTransaction as addTransactionFirestore, 
   getTransactions as getTransactionsFirestore,
@@ -81,8 +82,8 @@ export function useTransactions(initialData: Transaction[] = []) {
   // Helper to sort transactions (newest first)
   const getSortedTransactions = (txns: Transaction[]) => {
     return [...txns].sort((a, b) => {
-      const dateA = new Date(a.date).getTime();
-      const dateB = new Date(b.date).getTime();
+      const dateA = parseLocalDate(a.date).getTime();
+      const dateB = parseLocalDate(b.date).getTime();
       return dateB - dateA; // Newest first
     });
   };

@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { parseLocalDate } from '@/lib/date';
 
 interface Transaction {
   id: string;
@@ -25,7 +26,7 @@ export default function ReminderAlert({ transactions, dailyLimit }: ReminderAler
 
   const todayExpense = transactions
     .filter(t => {
-      const tDate = new Date(t.date);
+      const tDate = parseLocalDate(t.date);
       return t.type === 'expense' && 
              tDate.getDate() === today.getDate() &&
              tDate.getMonth() === today.getMonth() &&

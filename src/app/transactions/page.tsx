@@ -6,6 +6,7 @@ import { useAuth } from "@/context/AuthContext";
 import { useRouter } from "next/navigation";
 import { getTransactions, deleteTransaction, Transaction } from "@/lib/firestore";
 import FloatingActionButton from "@/components/FloatingActionButton";
+import { parseLocalDate } from "@/lib/date";
 
 function formatRupiah(amount: number): string {
   return new Intl.NumberFormat("id-ID", {
@@ -47,8 +48,8 @@ export default function TransactionsPage() {
 
   // Sort transactions by date (newest first) before filtering
   const sortedTransactions = [...transactions].sort((a, b) => {
-    const dateA = new Date(a.date).getTime();
-    const dateB = new Date(b.date).getTime();
+    const dateA = parseLocalDate(a.date).getTime();
+    const dateB = parseLocalDate(b.date).getTime();
     return dateB - dateA; // Newest first
   });
 
@@ -75,7 +76,7 @@ export default function TransactionsPage() {
   const totalExpense = monthFilteredTransactions.filter(t => t.type === "expense").reduce((sum, t) => sum + t.amount, 0);
 
   const formatMonthLabel = (value: string) => {
-    const date = new Date(`${value}-01`);
+    const date = parseLocalDate(`${value}-01`);
     return date.toLocaleDateString("id-ID", { month: "long", year: "numeric" });
   };
 
