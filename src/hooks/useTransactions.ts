@@ -78,8 +78,17 @@ export function useTransactions(initialData: Transaction[] = []) {
     setTransactions((prev) => prev.filter(t => t.id !== transactionId));
   };
 
+  // Helper to sort transactions (newest first)
+  const getSortedTransactions = (txns: Transaction[]) => {
+    return [...txns].sort((a, b) => {
+      const dateA = new Date(a.date).getTime();
+      const dateB = new Date(b.date).getTime();
+      return dateB - dateA; // Newest first
+    });
+  };
+
   return {
-    transactions,
+    transactions: getSortedTransactions(transactions),
     setTransactions,
     addTransaction,
     deleteTransaction,

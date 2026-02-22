@@ -110,7 +110,13 @@ export default function DashboardPage() {
     setBalance(inc - exp);
   }, [transactions, isLoadingFromFirestore]);
 
-  const recentTransactions = transactions.slice(0, 5);
+  // Sort transactions by date (newest first) and get recent 5
+  const sortedAllTransactions = [...transactions].sort((a, b) => {
+    const dateA = new Date(a.date).getTime();
+    const dateB = new Date(b.date).getTime();
+    return dateB - dateA; // Newest first
+  });
+  const recentTransactions = sortedAllTransactions.slice(0, 5);
   const displayName = user?.displayName
     || user?.email?.split("@")[0]
     || "User";

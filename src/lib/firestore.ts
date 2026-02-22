@@ -41,7 +41,8 @@ export const addTransaction = async (userId: string, data: Omit<Transaction, 'id
 
 export const getTransactions = async (userId: string): Promise<Transaction[]> => {
   const transactionsRef = collection(db, 'users', userId, 'transactions');
-  const q = query(transactionsRef, orderBy('date', 'desc'));
+  // Sort by createdAt descending (newest first) for consistent ordering
+  const q = query(transactionsRef, orderBy('createdAt', 'desc'));
   const snapshot = await getDocs(q);
   
   return snapshot.docs.map(doc => ({

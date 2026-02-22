@@ -53,7 +53,14 @@ export default function TransactionsPage() {
     }
   };
 
-  const filteredTransactions = transactions.filter(t => {
+  // Sort transactions by date (newest first) before filtering
+  const sortedTransactions = [...transactions].sort((a, b) => {
+    const dateA = new Date(a.date).getTime();
+    const dateB = new Date(b.date).getTime();
+    return dateB - dateA; // Newest first
+  });
+
+  const filteredTransactions = sortedTransactions.filter(t => {
     if (filter === "all") return true;
     return t.type === filter;
   });
