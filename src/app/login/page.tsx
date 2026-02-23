@@ -88,7 +88,7 @@ export default function LoginPage() {
           >
             {loading ? 'Memproses...' : 'Masuk dengan Google'}
           </button>
-          <p className="text-center text-xs text-gray-400">Terinspirasi oleh PG</p>
+          <p className="text-center text-xs text-gray-400">Terinspirasi oleh Agus</p>
         </div>
       </div>
     </div>
