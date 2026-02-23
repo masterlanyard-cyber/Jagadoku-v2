@@ -1,11 +1,12 @@
 // src/lib/test-firebase.ts
-import { db } from './firebase';
 import { collection, addDoc, getDocs } from 'firebase/firestore';
+import { ensureDb } from './firestore';
 
 export const testFirebaseConnection = async () => {
   try {
     // Test write
-    const testCollection = collection(db, 'test');
+    const firestore = ensureDb();
+    const testCollection = collection(firestore, 'test');
     const docRef = await addDoc(testCollection, {
       message: 'Hello from JagaDoku!',
       timestamp: new Date().toISOString(),

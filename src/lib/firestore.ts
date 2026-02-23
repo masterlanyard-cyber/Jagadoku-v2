@@ -27,8 +27,14 @@ export interface Transaction {
   icon: string;
 }
 
+export function ensureDb() {
+  if (!db) throw new Error('Firestore is not initialized. Make sure NEXT_PUBLIC_FIREBASE_API_KEY is set and code runs in the browser.');
+  return db;
+}
+
 export const addTransaction = async (userId: string, data: Omit<Transaction, 'id' | 'createdAt'>) => {
-  const transactionsRef = collection(db, 'users', userId, 'transactions');
+  const firestore = ensureDb();
+  const transactionsRef = collection(firestore, 'users', userId, 'transactions');
   
   // Parse date string (YYYY-MM-DD) as local date, NOT UTC
   const localDate = parseLocalDate(data.date);
@@ -42,7 +48,8 @@ export const addTransaction = async (userId: string, data: Omit<Transaction, 'id
 };
 
 export const getTransactions = async (userId: string): Promise<Transaction[]> => {
-  const transactionsRef = collection(db, 'users', userId, 'transactions');
+  const firestore = ensureDb();
+  const transactionsRef = collection(firestore, 'users', userId, 'transactions');
   // Sort by createdAt descending (newest first) for consistent ordering
   const q = query(transactionsRef, orderBy('createdAt', 'desc'));
   const snapshot = await getDocs(q);
@@ -61,7 +68,8 @@ export const getTransactions = async (userId: string): Promise<Transaction[]> =>
 };
 
 export const deleteTransaction = async (userId: string, transactionId: string) => {
-  const docRef = doc(db, 'users', userId, 'transactions', transactionId);
+  const firestore = ensureDb();
+  const docRef = doc(firestore, 'users', userId, 'transactions', transactionId);
   await deleteDoc(docRef);
 };
 
@@ -96,7 +104,8 @@ export const getTodayExpenses = async (userId: string): Promise<number> => {
   const tomorrow = new Date(today);
   tomorrow.setDate(tomorrow.getDate() + 1);
 
-  const transactionsRef = collection(db, 'users', userId, 'transactions');
+  const firestore = ensureDb();
+  const transactionsRef = collection(firestore, 'users', userId, 'transactions');
   const q = query(
     transactionsRef,
     where('type', '==', 'expense'),
@@ -108,7 +117,7 @@ export const getTodayExpenses = async (userId: string): Promise<number> => {
   return snapshot.docs.reduce((sum, doc) => sum + doc.data().amount, 0);
 };
 
-const userBudgetsDocRef = (userId: string) => doc(db, 'users', userId, 'meta', 'budgets');
+const userBudgetsDocRef = (userId: string) => doc(ensureDb(), 'users', userId, 'meta', 'budgets');
 
 export const getUserBudgets = async (userId: string): Promise<Record<string, number>> => {
   const snapshot = await getDoc(userBudgetsDocRef(userId));

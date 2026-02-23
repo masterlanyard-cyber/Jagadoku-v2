@@ -1,7 +1,7 @@
 // src/lib/firebase.ts
-import { initializeApp, getApps, getApp } from 'firebase/app';
-import { getFirestore } from 'firebase/firestore';
-import { getAuth } from 'firebase/auth';
+import { initializeApp, getApps, getApp, type FirebaseApp } from 'firebase/app';
+import { getFirestore, type Firestore } from 'firebase/firestore';
+import { getAuth, type Auth } from 'firebase/auth';
 
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
@@ -13,9 +13,9 @@ const firebaseConfig = {
 };
 
 // Initialize Firebase only on the client or when a valid API key is present
-let app: any = undefined;
-let db: any = undefined;
-let auth: any = undefined;
+let app: FirebaseApp | undefined = undefined;
+let db: Firestore | undefined = undefined;
+let auth: Auth | undefined = undefined;
 
 if (typeof window !== 'undefined' && firebaseConfig.apiKey) {
   app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();

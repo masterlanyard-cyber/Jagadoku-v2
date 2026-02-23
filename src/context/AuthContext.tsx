@@ -28,9 +28,10 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [needsAuthCode, setNeedsAuthCode] = useState(false);
+  const initialUser: User | null = (auth && auth.currentUser) ? auth.currentUser : null;
+  const [user, setUser] = useState<User | null>(initialUser);
+  const [loading, setLoading] = useState<boolean>(() => Boolean(auth));
+  const [needsAuthCode, setNeedsAuthCode] = useState<boolean>(false);
   const googleProvider = new GoogleAuthProvider();
 
   googleProvider.setCustomParameters({
@@ -40,9 +41,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (!auth) {
       // Firebase auth not initialized (missing env or running server-side).
-      setLoading(false);
-      setUser(null);
-      setNeedsAuthCode(false);
       return;
     }
 

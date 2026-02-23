@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 // scripts/export-to-sheets.js
+/* eslint-disable @typescript-eslint/no-require-imports */
 // Usage:
 // GOOGLE_APPLICATION_CREDENTIALS=path/to/sa.json node scripts/export-to-sheets.js --userUid=<UID> --sheetId=<SHEET_ID>
 

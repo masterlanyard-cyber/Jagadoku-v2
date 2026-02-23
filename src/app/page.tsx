@@ -76,6 +76,7 @@ type Transaction = {
   description: string;
   date: string;
   icon: string;
+  note?: string;
 };
 
 const initialTransactions: Transaction[] = [];
@@ -387,7 +388,7 @@ export default function DashboardPage() {
             <h3 className="font-semibold text-gray-900">Transaksi Terbaru</h3>
             <div className="flex items-center gap-2">
               <button
-                onClick={() => exportToCSV(transactions.map(t => ({ ...t, note: (t as any).note || '' })))}
+                onClick={() => exportToCSV(transactions.map(t => ({ ...t, note: (t as unknown as Transaction).note ?? '' })))}
                 className="text-xs bg-indigo-600 text-white px-3 py-1.5 rounded-md hover:bg-indigo-700"
               >
                 Download CSV
