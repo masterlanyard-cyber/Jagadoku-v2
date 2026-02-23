@@ -191,7 +191,10 @@ export default function DashboardPage() {
                 className="w-full h-full object-contain"
               />
             </div>
-            <span className="font-bold text-gray-900">Jagadoku</span>
+            <div className="flex flex-col">
+              <span className="font-bold text-gray-900">Jagadoku</span>
+              <span className="text-xs text-gray-500">Manajemen Keuangan Personal</span>
+            </div>
           </div>
 
           <div className="flex items-center gap-2">

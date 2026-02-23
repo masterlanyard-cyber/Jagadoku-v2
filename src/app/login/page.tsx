@@ -69,6 +69,7 @@ export default function LoginPage() {
             />
           </div>
           <h1 className="text-3xl font-bold text-gray-900">JagaDoku</h1>
+          <p className="text-sm text-gray-600 mt-1">Manajemen Keuangan Personal</p>
           <p className="mt-2 text-gray-600">Masuk dengan akun Google (Gmail)</p>
         </div>
 

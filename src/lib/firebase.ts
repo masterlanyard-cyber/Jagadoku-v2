@@ -12,9 +12,15 @@ const firebaseConfig = {
   appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
 };
 
-// Initialize Firebase
-const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
-const db = getFirestore(app);
-const auth = getAuth(app);
+// Initialize Firebase only on the client or when a valid API key is present
+let app: any = undefined;
+let db: any = undefined;
+let auth: any = undefined;
+
+if (typeof window !== 'undefined' && firebaseConfig.apiKey) {
+  app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
+  db = getFirestore(app);
+  auth = getAuth(app);
+}
 
 export { app, db, auth };
