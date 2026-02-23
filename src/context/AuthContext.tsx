@@ -38,6 +38,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   });
 
   useEffect(() => {
+    if (!auth) {
+      // Firebase auth not initialized (missing env or running server-side).
+      setLoading(false);
+      setUser(null);
+      setNeedsAuthCode(false);
+      return;
+    }
+
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       setUser(user);
       if (user && typeof window !== 'undefined') {
@@ -52,6 +60,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const signInWithGoogle = async () => {
+    if (!auth) throw new Error('Firebase auth is not initialized');
     const result = await signInWithPopup(auth, googleProvider);
     const additional = getAdditionalUserInfo(result);
     const isNewUser = Boolean(additional?.isNewUser);
@@ -70,6 +79,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const logout = async () => {
+    if (!auth) return;
     await signOut(auth);
   };
 
