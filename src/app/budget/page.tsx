@@ -35,11 +35,64 @@ const defaultBudgets: BudgetItem[] = [
   { category: "Lainnya", icon: "📦", color: "#6b7280", budgetAmount: 0, spent: 0 },
 ];
 
+// Generate icon and color for a category deterministically
+function generateCategoryMeta(name: string) {
+  const n = name.toLowerCase();
+
+  // simple keyword -> emoji mapping
+  const map: Record<string, string> = {
+    makanan: "🍔",
+    makan: "🍔",
+    transport: "🚗",
+    transportasi: "🚗",
+    belanja: "🛍️",
+    hiburan: "🎬",
+    utilitas: "💡",
+    kesehatan: "💊",
+    lain: "📦",
+  };
+
+  for (const k of Object.keys(map)) {
+    if (n.includes(k)) return { icon: map[k], color: pickColorFromString(name) };
+  }
+
+  // fallback: first letter as icon
+  const first = name.trim().charAt(0).toUpperCase() || "#";
+  return { icon: first, color: pickColorFromString(name) };
+}
+
+function pickColorFromString(s: string) {
+  // simple hash to hue
+  let h = 0;
+  for (let i = 0; i < s.length; i++) {
+    h = (h << 5) - h + s.charCodeAt(i);
+    h |= 0;
+  }
+  const hue = Math.abs(h) % 360;
+  // pastel HSL -> hex
+  return hslToHex(hue, 60, 65);
+}
+
+function hslToHex(h: number, s: number, l: number) {
+  s /= 100;
+  l /= 100;
+  const k = (n: number) => (n + h / 30) % 12;
+  const a = s * Math.min(l, 1 - l);
+  const f = (n: number) => {
+    const color = l - a * Math.max(-1, Math.min(k(n) - 3, Math.min(9 - k(n), 1)));
+    return Math.round(255 * color).toString(16).padStart(2, '0');
+  };
+  return `#${f(0)}${f(8)}${f(4)}`;
+}
+
 export default function BudgetPage() {
   const router = useRouter();
   const { user, loading, needsAuthCode } = useAuth();
   const { transactions, addTransaction, isLoadingFromFirestore } = useTransactions([]);
   const { budgets, loadingBudgets, setBudget } = useBudgets();
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [newCategoryName, setNewCategoryName] = useState("");
+  const [newCategoryAmount, setNewCategoryAmount] = useState("");
   
   // Modal state
   const [showModal, setShowModal] = useState(false);
@@ -66,11 +119,32 @@ export default function BudgetPage() {
       }, {} as Record<string, number>);
   }, [transactions]);
 
-  const budgetItems: BudgetItem[] = defaultBudgets.map(item => ({
-    ...item,
-    budgetAmount: budgets[item.category] || 0,
-    spent: spentByCategory[item.category] || 0,
-  }));
+  // Merge default categories with any user-defined categories from budgets
+  const allCategories = Array.from(new Set([
+    ...defaultBudgets.map(d => d.category),
+    ...Object.keys(budgets),
+  ]));
+
+  const budgetItems: BudgetItem[] = allCategories.map((category) => {
+    const defaultItem = defaultBudgets.find(d => d.category === category);
+    if (defaultItem) {
+      return {
+        ...defaultItem,
+        budgetAmount: budgets[category] || 0,
+        spent: spentByCategory[category] || 0,
+      };
+    }
+
+    // generated item for custom categories
+    const meta = generateCategoryMeta(category);
+    return {
+      category,
+      icon: meta.icon,
+      color: meta.color,
+      budgetAmount: budgets[category] || 0,
+      spent: spentByCategory[category] || 0,
+    };
+  });
 
   const totalBudget = budgetItems.reduce((sum, b) => sum + b.budgetAmount, 0);
   const totalSpent = budgetItems.reduce((sum, b) => sum + b.spent, 0);
@@ -175,7 +249,15 @@ export default function BudgetPage() {
 
         {/* Budget Categories */}
         <div>
-          <h3 className="font-semibold text-gray-900 mb-3">Anggaran per Kategori</h3>
+          <div className="flex items-center justify-between">
+            <h3 className="font-semibold text-gray-900 mb-3">Anggaran per Kategori</h3>
+            <button
+              onClick={() => setShowAddModal(true)}
+              className="text-sm bg-indigo-600 text-white px-3 py-2 rounded-xl hover:bg-indigo-700"
+            >
+              + Tambah Kategori
+            </button>
+          </div>
           <div className="space-y-3">
             {budgetItems.map((budget) => {
               const percentage = budget.budgetAmount > 0 
@@ -349,6 +431,61 @@ export default function BudgetPage() {
                 className="flex-1 py-3 px-4 rounded-xl bg-indigo-600 text-white font-medium hover:bg-indigo-700 transition-colors"
               >
                 Simpan
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Add Category Modal */}
+      {showAddModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+          <div className="bg-white rounded-2xl w-full max-w-sm p-5 shadow-xl">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="font-bold text-gray-900">Tambah Kategori Anggaran</h3>
+              <button onClick={() => setShowAddModal(false)} className="p-2 hover:bg-gray-100 rounded-full">
+                <svg className="w-5 h-5 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+
+            <div className="mb-3">
+              <label className="block text-sm font-medium text-gray-700 mb-1">Nama Kategori</label>
+              <input
+                value={newCategoryName}
+                onChange={(e) => setNewCategoryName(e.target.value)}
+                placeholder="Contoh: Investasi"
+                className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-indigo-500 outline-none"
+              />
+            </div>
+
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-gray-700 mb-1">Nominal Anggaran (Rp)</label>
+              <input
+                value={newCategoryAmount}
+                onChange={(e) => setNewCategoryAmount(e.target.value.replace(/\D/g, ''))}
+                placeholder="0"
+                className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-indigo-500 outline-none"
+              />
+            </div>
+
+            <div className="flex gap-2">
+              <button onClick={() => setShowAddModal(false)} className="flex-1 py-3 px-4 rounded-xl border-2 border-gray-200 text-gray-700 font-medium">Batal</button>
+              <button
+                onClick={() => {
+                  const name = newCategoryName.trim();
+                  const amount = parseInt(newCategoryAmount || '0', 10);
+                  if (!name) { alert('Masukkan nama kategori'); return; }
+                  if (isNaN(amount) || amount < 0) { alert('Nominal tidak valid'); return; }
+                  void setBudget(name, amount);
+                  setNewCategoryName('');
+                  setNewCategoryAmount('');
+                  setShowAddModal(false);
+                }}
+                className="flex-1 py-3 px-4 rounded-xl bg-indigo-600 text-white font-medium hover:bg-indigo-700"
+              >
+                Tambah
               </button>
             </div>
           </div>
