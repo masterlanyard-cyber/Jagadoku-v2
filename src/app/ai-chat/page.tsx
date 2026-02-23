@@ -33,128 +33,8 @@ interface Transaction {
   icon: string;
 }
 
-// AI Response generator (simulasi AI)
-function generateAIResponse(
-  userMessage: string,
-  transactions: Transaction[]
-): { content: string; type: "text" | "insight" | "recommendation" } {
-  const lowerMsg = userMessage.toLowerCase();
-  
-  // Hitung statistik
-  const totalExpense = transactions
-    .filter(t => t.type === "expense")
-    .reduce((sum, t) => sum + t.amount, 0);
-  const totalIncome = transactions
-    .filter(t => t.type === "income")
-    .reduce((sum, t) => sum + t.amount, 0);
-  const balance = totalIncome - totalExpense;
-
-  // Kategori pengeluaran terbesar
-  const expensesByCategory: Record<string, number> = {};
-  transactions
-    .filter(t => t.type === "expense")
-    .forEach(t => {
-      expensesByCategory[t.category] = (expensesByCategory[t.category] || 0) + t.amount;
-    });
-  
-  const topCategory = Object.entries(expensesByCategory)
-    .sort((a, b) => b[1] - a[1])[0];
-
-  // Response berdasarkan pertanyaan
-  if (lowerMsg.includes("halo") || lowerMsg.includes("hi") || lowerMsg.includes("hey")) {
-    return {
-      content: "Halo! 👋 Saya adalah asisten finansial AI Anda. Ada yang bisa saya bantu tentang keuangan Anda hari ini?",
-      type: "text"
-    };
-  }
-
-  if (lowerMsg.includes("saldo") || lowerMsg.includes("total") || lowerMsg.includes("uang")) {
-    return {
-      content: `💰 Total saldo Anda saat ini adalah **${formatRupiah(balance)}**.\n\n💵 Pemasukan: ${formatRupiah(totalIncome)}\n💸 Pengeluaran: ${formatRupiah(totalExpense)}`,
-      type: "insight"
-    };
-  }
-
-  if (lowerMsg.includes("pengeluaran") || lowerMsg.includes("habis") || lowerMsg.includes("keluar")) {
-    if (topCategory) {
-      return {
-        content: `📊 Pengeluaran terbesar Anda adalah untuk kategori **${topCategory[0]}** sebesar ${formatRupiah(topCategory[1])}.\n\nTotal pengeluaran bulan ini: ${formatRupiah(totalExpense)}`,
-        type: "insight"
-    };
-    }
-    return {
-      content: "Anda belum memiliki catatan pengeluaran. Mulai tambahkan transaksi untuk melihat analisis!",
-      type: "text"
-    };
-  }
-
-  if (lowerMsg.includes("hemat") || lowerMsg.includes("tips") || lowerMsg.includes("saran") || lowerMsg.includes("nabung")) {
-    const tips = [
-      "🍱 **Kurangi makan di luar**: Bawa bekal bisa hemat Rp 500.000/bulan!",
-      "🚗 **Gunakan transportasi umum**: Gojek/Grab terlalu sering? Coba naik bus/MRT.",
-      "☕ **Batasi kopi**: Rp 50.000/hari = Rp 1.5 juta/bulan! Bikin kopi sendiri di rumah.",
-      "🛒 **Belanja dengan list**: Hindari impulse buying, buat daftar belanjaan.",
-      "📱 **Unsubscribe**: Cek langganan aplikasi yang jarang dipakai."
-    ];
-    const randomTip = tips[Math.floor(Math.random() * tips.length)];
-    return {
-      content: `💡 **Tips Hemat untuk Anda:**\n\n${randomTip}\n\nDengan mengurangi pengeluaran ${topCategory ? topCategory[0] : 'terbesar'} Anda, bisa hemat hingga 20%/bulan!`,
-      type: "recommendation"
-    };
-  }
-
-  if (lowerMsg.includes("investasi")) {
-    return {
-      content: "📈 **Menu Investasi**\n\n✅ **Simulasi investasi sederhana (imbal hasil 8%/tahun)**\n• Rp 500.000/bulan → 1 thn ≈ Rp 6,2 jt | 3 thn ≈ Rp 19,6 jt | 5 thn ≈ Rp 36,7 jt\n• Rp 1.000.000/bulan → 1 thn ≈ Rp 12,4 jt | 3 thn ≈ Rp 39,2 jt | 5 thn ≈ Rp 73,4 jt\n\n🛟 **Dana darurat (sebelum investasi)**\nDisarankan 3-6x biaya bulanan.\nContoh biaya Rp 3 juta/bulan: target dana darurat Rp 9-18 juta.\n\n🧭 **Profil risiko (ringkas)**\n• Konservatif: fokus keamanan, hasil stabil (RDPU/Deposito)\n• Moderat: gabungan aman & tumbuh (RDPU + RDPT + RD Saham)\n• Agresif: fokus pertumbuhan jangka panjang (RD Saham/Saham)\n\n🏦 **Nama bank (contoh)**\nBCA, BRI, Mandiri, BNI, CIMB Niaga, Danamon.\n\nKetik: \"profil risiko\", \"investasi pemula\", atau \"diversifikasi\" untuk penjelasan lanjut.",
-      type: "recommendation"
-    };
-  }
-
-  if (lowerMsg.includes("profil risiko")) {
-    return {
-      content: "🧭 **Kuesioner Profil Risiko (singkat)**\nJawab A/B/C untuk setiap pertanyaan:\n\n1) Tujuan investasi?\nA. Jangka pendek (≤ 1 tahun)\nB. Menengah (1-3 tahun)\nC. Panjang (> 3 tahun)\n\n2) Jika nilai investasi turun 10%?\nA. Panik dan tarik dana\nB. Diam dulu, tunggu pulih\nC. Tambah investasi\n\n3) Prioritas Anda?\nA. Keamanan modal\nB. Seimbang\nC. Pertumbuhan maksimal\n\n4) Pengalaman investasi?\nA. Pemula\nB. Pernah mencoba\nC. Sudah rutin\n\n**Skor:** A=1, B=2, C=3.\n• 4-6: Konservatif\n• 7-9: Moderat\n• 10-12: Agresif\n\nKetik jawaban contoh: \"1A 2B 3B 4A\" untuk rekomendasi instrumen.",
-      type: "recommendation"
-    };
-  }
-
-  if (lowerMsg.includes("1a") || lowerMsg.includes("2a") || lowerMsg.includes("3a") || lowerMsg.includes("4a") || lowerMsg.includes("1b") || lowerMsg.includes("2b") || lowerMsg.includes("3b") || lowerMsg.includes("4b") || lowerMsg.includes("1c") || lowerMsg.includes("2c") || lowerMsg.includes("3c") || lowerMsg.includes("4c")) {
-    return {
-      content: "📌 **Rekomendasi Instrumen (umum)**\n\n• **Konservatif:** RDPU, Deposito, obligasi pemerintah jangka pendek.\n• **Moderat:** RDPU + RDPT + sebagian RD Saham.\n• **Agresif:** RD Saham / saham blue-chip, dengan horizon jangka panjang.\n\nTips: sesuaikan dengan dana darurat & tujuan. Jika ragu, mulai dari konservatif lalu bertahap naikkan risiko.",
-      type: "insight"
-    };
-  }
-
-  if (lowerMsg.includes("analisis") || lowerMsg.includes("analisa") || lowerMsg.includes("review")) {
-    const expenseRatio = totalIncome > 0 ? (totalExpense / totalIncome) * 100 : 0;
-    let analysis = "";
-    
-    if (expenseRatio > 80) {
-      analysis = "⚠️ **Perhatian!** Pengeluaran Anda sudah mencapai " + expenseRatio.toFixed(0) + "% dari pemasukan. Segera kurangi pengeluaran non-esensial!";
-    } else if (expenseRatio > 50) {
-      analysis = "📊 Pengeluaran Anda masih dalam batas wajar (" + expenseRatio.toFixed(0) + "% dari pemasukan). Pertahankan dan coba tingkatkan tabungan.";
-    } else {
-      analysis = "🌟 **Hebat!** Pengeluaran Anda sangat terkontrol (" + expenseRatio.toFixed(0) + "% dari pemasukan). Terus pertahankan kebiasaan baik ini!";
-    }
-
-    return {
-      content: `${analysis}\n\n💡 **Rekomendasi:**\nCoba alokasikan minimal 20% pemasukan untuk tabungan dan investasi.`,
-      type: "insight"
-    };
-  }
-
-  if (lowerMsg.includes("terima kasih") || lowerMsg.includes("thanks") || lowerMsg.includes("makasih")) {
-    return {
-      content: "Sama-sama! 😊 Senang bisa membantu. Jangan rupa untuk kembali bertanya kapan saja. Semoga keuangan Anda semakin sehat! 💪",
-      type: "text"
-    };
-  }
-
-  // Default response
-  return {
-    content: `Maaf, saya belum paham pertanyaan Anda. 😅\n\nCoba tanyakan tentang:\n• 💰 Saldo/Total uang\n• 📊 Pengeluaran terbesar\n• 💡 Tips hemat/uang\n• 📈 Analisis keuangan\n\nAtau tambahkan transaksi lebih banyak untuk analisis yang lebih akurat!`,
-    type: "text"
-  };
-}
+// The AI chat now uses a server-side OpenAI route. The client will POST
+// { message, transactions } to `/api/ai/chat` and receive a `{ reply }`.
 
 export default function AIChatPage() {
   const [transactions] = useLocalStorage<Transaction[]>("jagadoku-transactions-v2", []);
@@ -184,11 +64,10 @@ export default function AIChatPage() {
   // Handle kirim pesan
   const handleSend = async (e?: React.FormEvent, quickMessage?: string) => {
     e?.preventDefault();
-
     const message = (quickMessage ?? inputMessage).trim();
     if (!message) return;
 
-    // Tambah pesan user
+    // Tambah pesan user segera ke UI
     const userMessage: ChatMessage = {
       id: Date.now().toString(),
       role: "user",
@@ -201,21 +80,42 @@ export default function AIChatPage() {
     setInputMessage("");
     setIsTyping(true);
 
-    // Simulasi delay AI thinking
-    setTimeout(() => {
-      const response = generateAIResponse(message, transactions);
-      
+    try {
+      const res = await fetch("/api/ai/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message, transactions }),
+      });
+
+      if (!res.ok) {
+        throw new Error(`AI API error: ${res.status}`);
+      }
+
+      const data = await res.json();
+      const reply = data?.reply || "Maaf, terjadi kesalahan saat memanggil layanan AI.";
+
       const aiMessage: ChatMessage = {
         id: (Date.now() + 1).toString(),
         role: "assistant",
-        content: response.content,
+        content: reply,
         timestamp: new Date().toISOString(),
-        type: response.type
+        type: "text"
       };
 
       setMessages(prev => [...prev, aiMessage]);
+    } catch (err) {
+      console.error(err);
+      const errMsg: ChatMessage = {
+        id: (Date.now() + 2).toString(),
+        role: "assistant",
+        content: "Terjadi kesalahan saat memanggil layanan AI. Coba lagi nanti.",
+        timestamp: new Date().toISOString(),
+        type: "text"
+      };
+      setMessages(prev => [...prev, errMsg]);
+    } finally {
       setIsTyping(false);
-    }, 1000 + Math.random() * 1000); // Random delay 1-2 detik
+    }
   };
 
   // Format timestamp
