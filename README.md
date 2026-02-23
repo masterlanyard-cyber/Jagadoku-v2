@@ -49,3 +49,20 @@ You can check out [the Next.js GitHub repository](https://github.com/vercel/next
 The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
 
 Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+
+## Export / Reporting: Firestore → Google Sheets
+
+You can export a user's transactions to a Google Sheet using a service account.
+
+1. Create a Google Service Account with `Sheets API` and `Drive` access and download the JSON key file.
+2. Share the target Google Sheet with the service account email (so it can edit).
+3. Run the script locally:
+
+```bash
+export GOOGLE_APPLICATION_CREDENTIALS=/path/to/sa.json
+node scripts/export-to-sheets.js --userUid=<USER_UID> --sheetId=<SHEET_ID>
+```
+
+The script will write a styled table (`Sheet1`) with columns: Tanggal, Tipe, Kategori, Jumlah, Catatan, Deskripsi, Icon.
+
+If you want automated syncs, run the script in a scheduled runner (Cloud Run, Cloud Functions, GitHub Actions) with credentials stored securely.

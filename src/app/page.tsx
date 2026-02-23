@@ -9,6 +9,8 @@ import { useTransactions } from "@/hooks/useTransactions";
 import { useBudgets } from "@/hooks/useBudgets";
 import ChartSection from "@/components/ChartSection";
 import ReminderAlert from "@/components/ReminderAlert";
+import { exportToCSV } from "@/lib/firestore";
+import DashboardPdfButton from "@/components/DashboardPdfButton";
 import FloatingActionButton from "@/components/FloatingActionButton";
 import OverBudgetWarning from "@/components/OverBudgetWarning";
 import { parseLocalDate } from "@/lib/date";
@@ -384,9 +386,18 @@ export default function DashboardPage() {
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
           <div className="flex items-center justify-between p-4 border-b border-gray-100">
             <h3 className="font-semibold text-gray-900">Transaksi Terbaru</h3>
-            <Link href="/transactions" className="text-xs text-indigo-600 font-medium hover:text-indigo-700">
-              Lihat Semua
-            </Link>
+            <div className="flex items-center gap-2">
+              <DashboardPdfButton transactions={transactions} />
+              <button
+                onClick={() => exportToCSV(transactions.map(t => ({ ...t, note: (t as any).note || '' })))}
+                className="text-xs bg-indigo-600 text-white px-3 py-1.5 rounded-md hover:bg-indigo-700"
+              >
+                Download CSV
+              </button>
+              <Link href="/transactions" className="text-xs text-indigo-600 font-medium hover:text-indigo-700">
+                Lihat Semua
+              </Link>
+            </div>
           </div>
 
           <div className="divide-y divide-gray-100">
