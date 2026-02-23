@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback, useMemo, useRef } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import Link from "next/link";
 import { useAuth } from "@/context/AuthContext";
 import { useRouter } from "next/navigation";
@@ -21,7 +21,6 @@ export default function TransactionsPage() {
   const router = useRouter();
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [loadingData, setLoadingData] = useState(true);
-  const reportRef = useRef<HTMLDivElement | null>(null);
   const [filter, setFilter] = useState<"all" | "income" | "expense">("all");
   const [selectedMonth, setSelectedMonth] = useState<string>("all");
 
@@ -146,89 +145,13 @@ export default function TransactionsPage() {
         </div>
       </div>
 
-      <div className="px-4 mb-4 flex items-center justify-end gap-2">
+      <div className="px-4 mb-4 flex items-center justify-end">
         <button
           onClick={() => exportToCSV(filteredTransactions)}
           className="text-sm bg-indigo-600 text-white px-3 py-2 rounded-xl hover:bg-indigo-700"
         >
           Download CSV
         </button>
-        <button
-          onClick={async () => {
-            if (!reportRef.current) return;
-            const html2pdf = (await import('html2pdf.js')).default;
-            const opt = {
-              margin: 12,
-              filename: `laporan-jagadoku-${selectedMonth === 'all' ? 'semua' : selectedMonth}.pdf`,
-              html2canvas: { scale: 2 },
-              jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
-            };
-            html2pdf().from(reportRef.current).set(opt as any).save();
-          }}
-          className="text-sm bg-gray-800 text-white px-3 py-2 rounded-xl hover:bg-gray-900"
-        >
-          Download PDF
-        </button>
-      </div>
-
-      {/* Hidden printable report */}
-      <div ref={reportRef as any} style={{ display: 'none' }}>
-        <div style={{ fontFamily: 'Inter, Arial, sans-serif', padding: 28, color: '#111827' }}>
-          {/* Kop surat */}
-          <div style={{ display: 'flex', alignItems: 'center', marginBottom: 8 }}>
-            <img src="/icons/android-chrome-192x192.png" alt="Jagadoku" style={{ width: 60, height: 60, marginRight: 12 }} />
-            <div>
-              <h1 style={{ margin: 0, fontSize: 22, letterSpacing: 1 }}>JAGA DOKU</h1>
-              <div style={{ color: '#6b7280', fontSize: 12 }}>Manajemen Keuangan Personal</div>
-              <div style={{ color: '#6b7280', fontSize: 11, marginTop: 4 }}>Jl. Contoh No.1 · Jakarta · Indonesia · support@jagadoku.com</div>
-            </div>
-          </div>
-          <div style={{ height: 1, background: '#e5e7eb', margin: '12px 0 18px' }} />
-
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
-            <div>
-              <div style={{ fontSize: 14, fontWeight: 600 }}>Laporan Transaksi</div>
-              <div style={{ fontSize: 12, color: '#6b7280' }}>{selectedMonth === 'all' ? 'Periode: Semua' : `Periode: ${selectedMonth}`}</div>
-            </div>
-            <div style={{ textAlign: 'right' }}>
-              <div style={{ fontSize: 12, color: '#6b7280' }}>Tanggal Cetak</div>
-              <div style={{ fontSize: 13 }}>{new Date().toLocaleDateString('id-ID')}</div>
-            </div>
-          </div>
-
-          <table style={{ width: '100%', borderCollapse: 'separate', borderSpacing: 0, fontSize: 12 }}>
-            <thead>
-              <tr style={{ background: '#f3f4f6' }}>
-                <th style={{ textAlign: 'left', padding: '10px 8px', borderBottom: '1px solid #e5e7eb' }}>Tanggal</th>
-                <th style={{ textAlign: 'left', padding: '10px 8px', borderBottom: '1px solid #e5e7eb' }}>Tipe</th>
-                <th style={{ textAlign: 'left', padding: '10px 8px', borderBottom: '1px solid #e5e7eb' }}>Kategori</th>
-                <th style={{ textAlign: 'right', padding: '10px 8px', borderBottom: '1px solid #e5e7eb' }}>Jumlah (IDR)</th>
-                <th style={{ textAlign: 'left', padding: '10px 8px', borderBottom: '1px solid #e5e7eb' }}>Catatan</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredTransactions.map((t) => (
-                <tr key={t.id}>
-                  <td style={{ padding: '8px', borderBottom: '1px solid #f3f4f6', verticalAlign: 'top' }}>{t.date}</td>
-                  <td style={{ padding: '8px', borderBottom: '1px solid #f3f4f6', verticalAlign: 'top' }}>{t.type === 'income' ? 'Pemasukan' : 'Pengeluaran'}</td>
-                  <td style={{ padding: '8px', borderBottom: '1px solid #f3f4f6', verticalAlign: 'top' }}>{t.category}</td>
-                  <td style={{ padding: '8px', borderBottom: '1px solid #f3f4f6', textAlign: 'right', verticalAlign: 'top' }}>{new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(t.amount)}</td>
-                  <td style={{ padding: '8px', borderBottom: '1px solid #f3f4f6', verticalAlign: 'top' }}>{(t as any).note || '-'}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-
-          <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 18 }}>
-            <div style={{ textAlign: 'right', fontSize: 12 }}>
-              <div style={{ color: '#374151' }}>Total Pemasukan: <strong>{formatRupiah(totalIncome)}</strong></div>
-              <div style={{ color: '#374151' }}>Total Pengeluaran: <strong>{formatRupiah(totalExpense)}</strong></div>
-              <div style={{ marginTop: 6, fontWeight: 600 }}>Saldo: {formatRupiah(totalIncome - totalExpense)}</div>
-            </div>
-          </div>
-
-          <div style={{ marginTop: 28, fontSize: 11, color: '#6b7280' }}>Catatan: Laporan ini dihasilkan oleh JagaDoku dan hanya untuk keperluan pengguna.</div>
-        </div>
       </div>
 
       <div className="px-4 mb-4">
