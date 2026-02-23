@@ -1,8 +1,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
-  output: 'export',
-  distDir: 'out',
+  // Run in default Next.js mode to enable server-side features (API routes).
   trailingSlash: true,
   images: {
     unoptimized: true,
