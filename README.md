@@ -1,6 +1,19 @@
+# Jagadoku Mobile
+
+> ⚠️ **DESIGN LOCKED**: UI specifications are frozen. See [DESIGN_SPEC.md](./DESIGN_SPEC.md) before making any visual changes.
+
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
 ## Release Notes
+
+### 2026-02-24 — UI Design Lock & Light Mode Refinement
+
+- 🔒 **UI Design Locked** - Complete design specification documented and frozen
+- Refined light mode with improved contrast and readability
+- Enhanced colored panels with optimal text contrast
+- Fixed gradient backgrounds for proper white text visibility
+- Updated all pages for consistent light/dark theme experience
+- See [DESIGN_SPEC.md](./DESIGN_SPEC.md) for complete UI guidelines
 
 ### 2026-02-24 — UI Light/Dark Mode
 

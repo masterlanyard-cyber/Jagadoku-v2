@@ -1,3 +1,12 @@
+/**
+ * ⚠️ THEME CONFIGURATION LOCKED ⚠️
+ * 
+ * DO NOT modify theme behavior, default theme, or color application logic.
+ * See DESIGN_SPEC.md for complete documentation.
+ * 
+ * Version: 1.0.0
+ */
+
 "use client";
 
 import { createContext, useContext, useEffect, useState } from "react";
