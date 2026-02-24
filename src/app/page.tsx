@@ -12,6 +12,7 @@ import ReminderAlert from "@/components/ReminderAlert";
 import { exportToCSV } from "@/lib/firestore";
 import FloatingActionButton from "@/components/FloatingActionButton";
 import OverBudgetWarning from "@/components/OverBudgetWarning";
+import ThemeToggle from "@/components/ThemeToggle";
 import { parseLocalDate } from "@/lib/date";
 
 function formatRupiah(amount: number): string {
@@ -206,11 +207,14 @@ export default function DashboardPage() {
               </svg>
             </Link>
 
-            <button onClick={handleLogout} className="p-2 hover:bg-gray-100 rounded-full" title="Logout">
-              <svg className="w-6 h-6 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-              </svg>
-            </button>
+            <div className="flex flex-col items-center gap-1">
+              <button onClick={handleLogout} className="p-2 hover:bg-gray-100 rounded-full" title="Logout">
+                <svg className="w-6 h-6 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                </svg>
+              </button>
+              <ThemeToggle />
+            </div>
           </div>
         </div>
       </header>
