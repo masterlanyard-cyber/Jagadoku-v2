@@ -699,7 +699,7 @@ export default function BudgetPage() {
           
           <button
             onClick={() => setShowAddModal(true)}
-            className="w-14 h-14 bg-indigo-600 hover:bg-indigo-700 text-white rounded-full shadow-lg shadow-indigo-500/40 flex items-center justify-center transition-all active:scale-95 -mt-6"
+            className="w-12 h-12 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl shadow-sm flex items-center justify-center transition-all active:scale-95 -mt-1"
             title="Tambah Transaksi"
           >
             <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
