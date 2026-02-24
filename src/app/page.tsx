@@ -10,10 +10,34 @@ import { useBudgets } from "@/hooks/useBudgets";
 import ChartSection from "@/components/ChartSection";
 import ReminderAlert from "@/components/ReminderAlert";
 import { exportToCSV } from "@/lib/firestore";
-import FloatingActionButton from "@/components/FloatingActionButton";
 import OverBudgetWarning from "@/components/OverBudgetWarning";
 import ThemeToggle from "@/components/ThemeToggle";
 import { parseLocalDate } from "@/lib/date";
+
+type Transaction = {
+  id: string;
+  amount: number;
+  type: "income" | "expense";
+  category: string;
+  description: string;
+  date: string;
+  icon: string;
+  note?: string;
+};
+
+const initialTransactions: Transaction[] = [];
+
+const initialCategories = [
+  { id: "makanan", name: "Makanan", icon: "🍔", type: "expense" },
+  { id: "transportasi", name: "Transportasi", icon: "🚗", type: "expense" },
+  { id: "belanja", name: "Belanja", icon: "🛍️", type: "expense" },
+  { id: "hiburan", name: "Hiburan", icon: "🎬", type: "expense" },
+  { id: "utilitas", name: "Utilitas", icon: "💡", type: "expense" },
+  { id: "kesehatan", name: "Kesehatan", icon: "💊", type: "expense" },
+  { id: "gaji", name: "Gaji", icon: "💰", type: "income" },
+  { id: "bonus", name: "Bonus", icon: "🎁", type: "income" },
+  { id: "lainnya", name: "Lainnya", icon: "📦", type: "expense" },
+];
 
 function formatRupiah(amount: number): string {
   return new Intl.NumberFormat("id-ID", {
@@ -68,29 +92,28 @@ function blendHex(base: string, mix: string, amount: number) {
   );
 }
 
-
-type Transaction = {
-  id: string;
-  amount: number;
-  type: "income" | "expense";
-  category: string;
-  description: string;
-  date: string;
-  icon: string;
-  note?: string;
-};
-
-const initialTransactions: Transaction[] = [];
-
 export default function DashboardPage() {
   const router = useRouter();
   const { user, loading, logout, needsAuthCode } = useAuth();
   const { transactions, addTransaction, isLoadingFromFirestore } = useTransactions(initialTransactions);
   const { budgets, loadingBudgets } = useBudgets();
   const [showModal, setShowModal] = useState<"income" | "expense" | null>(null);
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [formType, setFormType] = useState<"income" | "expense">("expense");
+  const [formAmount, setFormAmount] = useState("");
+  const [formCategory, setFormCategory] = useState("");
+  const [formDescription, setFormDescription] = useState("");
+  const getTodayDate = () => {
+    const now = new Date();
+    const yyyy = now.getFullYear();
+    const mm = String(now.getMonth() + 1).padStart(2, '0');
+    const dd = String(now.getDate()).padStart(2, '0');
+    return `${yyyy}-${mm}-${dd}`;
+  };
+  const [formDate, setFormDate] = useState(getTodayDate());
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
-    // Redirect to login if user is not authenticated
     if (!loading && !user) {
       router.push("/login");
       return;
@@ -106,11 +129,10 @@ export default function DashboardPage() {
   const expense = transactions.filter(t => t.type === "expense").reduce((sum, t) => sum + t.amount, 0);
   const balance = income - expense;
 
-  // Sort transactions by date (newest first) and get recent 5
   const sortedAllTransactions = [...transactions].sort((a, b) => {
     const dateA = parseLocalDate(a.date).getTime();
     const dateB = parseLocalDate(b.date).getTime();
-    return dateB - dateA; // Newest first
+    return dateB - dateA;
   });
   const recentTransactions = sortedAllTransactions.slice(0, 5);
   const displayName = user?.displayName
@@ -159,7 +181,36 @@ export default function DashboardPage() {
     router.push("/login");
   };
 
+  const handleAddTransaction = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!formAmount || !formCategory) {
+      alert("Jumlah dan kategori harus diisi!");
+      return;
+    }
 
+    setIsSubmitting(true);
+    try {
+      await addTransaction({
+        amount: parseInt(formAmount),
+        type: formType,
+        category: formCategory,
+        description: formDescription,
+        date: formDate,
+        icon: initialCategories.find(c => c.name === formCategory)?.icon || "📦",
+      });
+      setShowAddModal(false);
+      setFormAmount("");
+      setFormCategory("");
+      setFormDescription("");
+      setFormDate(getTodayDate());
+    } catch (error) {
+      console.error("Error adding transaction:", error);
+      alert("Gagal menambah transaksi");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   if (loading || isLoadingFromFirestore) {
     return <div className="min-h-screen bg-gray-50 flex items-center justify-center"><div className="w-16 h-16 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin"></div></div>;
@@ -178,14 +229,14 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-24">
-      <header className="bg-white border-b border-gray-200 sticky top-0 z-10">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-950 pb-24">
+      <header className="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 sticky top-0 z-10">
         <div className="px-4 pt-4 pb-0">
           <OverBudgetWarning transactions={transactions} budgets={budgets} className="mb-3" />
         </div>
         <div className="flex items-center justify-between h-14 px-4">
           <div className="flex items-center gap-2">
-            <div className="w-12 h-12 rounded-lg overflow-hidden bg-white">
+            <div className="w-12 h-12 rounded-lg overflow-hidden bg-white dark:bg-gray-800">
               <Image
                 src="/icons/android-chrome-192x192.png"
                 alt="Jagadoku"
@@ -195,21 +246,21 @@ export default function DashboardPage() {
               />
             </div>
             <div className="flex flex-col">
-              <span className="font-bold text-gray-900">Jagadoku</span>
-              <span className="text-xs text-gray-500">Manajemen Keuangan Personal</span>
+              <span className="font-bold text-gray-900 dark:text-white">Jagadoku</span>
+              <span className="text-xs text-gray-500 dark:text-gray-400">Manajemen Keuangan Personal</span>
             </div>
           </div>
 
           <div className="flex items-center gap-2">
             <ThemeToggle />
-            <Link href="/profile/" className="p-2 hover:bg-gray-100 rounded-full" title="Profil">
-              <svg className="w-6 h-6 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <Link href="/profile/" className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full" title="Profil">
+              <svg className="w-6 h-6 text-gray-600 dark:text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
               </svg>
             </Link>
 
-            <button onClick={handleLogout} className="p-2 hover:bg-gray-100 rounded-full" title="Logout">
-              <svg className="w-6 h-6 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <button onClick={handleLogout} className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full" title="Logout">
+              <svg className="w-6 h-6 text-gray-600 dark:text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
               </svg>
             </button>
@@ -219,68 +270,68 @@ export default function DashboardPage() {
 
       <main className="p-4 space-y-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Halo, {displayName}! 👋</h1>
-          <p className="text-gray-600 mt-1">Kelola keuanganmu dengan pintar</p>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Halo, {displayName}! 👋</h1>
+          <p className="text-gray-600 dark:text-gray-400 mt-1">Kelola keuanganmu dengan pintar</p>
         </div>
 
         <div className="grid grid-cols-2 gap-3">
 
-          <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
+          <div className="bg-white dark:bg-gray-900 rounded-2xl p-4 shadow-sm border border-gray-100 dark:border-gray-700">
             <div className="flex items-center justify-between mb-2">
-              <span className="text-xs font-medium text-gray-500">Total Saldo</span>
-              <div className="p-1.5 bg-indigo-100 rounded-lg">
-                <svg className="w-4 h-4 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <span className="text-xs font-medium text-gray-500 dark:text-gray-400">Total Saldo</span>
+              <div className="p-1.5 bg-indigo-100 dark:bg-indigo-900 rounded-lg">
+                <svg className="w-4 h-4 text-indigo-600 dark:text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
               </div>
             </div>
-            <p className="text-lg font-bold text-gray-900 truncate">{formatRupiah(balance)}</p>
+            <p className="text-lg font-bold text-gray-900 dark:text-white truncate">{formatRupiah(balance)}</p>
           </div>
 
-          <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 cursor-pointer" onClick={() => setShowModal("income")}> 
+          <div className="bg-white dark:bg-gray-900 rounded-2xl p-4 shadow-sm border border-gray-100 dark:border-gray-700 cursor-pointer" onClick={() => setShowModal("income")}> 
             <div className="flex items-center justify-between mb-2">
-              <span className="text-xs font-medium text-gray-500">Pemasukan</span>
-              <div className="p-1.5 bg-green-100 rounded-lg">
-                <svg className="w-4 h-4 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <span className="text-xs font-medium text-gray-500 dark:text-gray-400">Pemasukan</span>
+              <div className="p-1.5 bg-green-100 dark:bg-green-900 rounded-lg">
+                <svg className="w-4 h-4 text-green-600 dark:text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
                 </svg>
               </div>
             </div>
-            <p className="text-lg font-bold text-gray-900 truncate">{formatRupiah(income)}</p>
+            <p className="text-lg font-bold text-gray-900 dark:text-white truncate">{formatRupiah(income)}</p>
           </div>
 
-          <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 cursor-pointer" onClick={() => setShowModal("expense")}> 
+          <div className="bg-white dark:bg-gray-900 rounded-2xl p-4 shadow-sm border border-gray-100 dark:border-gray-700 cursor-pointer" onClick={() => setShowModal("expense")}> 
             <div className="flex items-center justify-between mb-2">
-              <span className="text-xs font-medium text-gray-500">Pengeluaran</span>
-              <div className="p-1.5 bg-red-100 rounded-lg">
-                <svg className="w-4 h-4 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <span className="text-xs font-medium text-gray-500 dark:text-gray-400">Pengeluaran</span>
+              <div className="p-1.5 bg-red-100 dark:bg-red-900 rounded-lg">
+                <svg className="w-4 h-4 text-red-600 dark:text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 17h8m0 0V9m0 8l-8-8-4 4-6-6" />
                 </svg>
               </div>
             </div>
-            <p className="text-lg font-bold text-gray-900 truncate">{formatRupiah(expense)}</p>
-            <span className="text-xs text-red-600">↓ {expensePercent}% dari total saldo</span>
+            <p className="text-lg font-bold text-gray-900 dark:text-white truncate">{formatRupiah(expense)}</p>
+            <span className="text-xs text-red-600 dark:text-red-400">↓ {expensePercent}% dari total saldo</span>
           </div>
 
-          <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
+          <div className="bg-white dark:bg-gray-900 rounded-2xl p-4 shadow-sm border border-gray-100 dark:border-gray-700">
             <div className="flex items-center justify-between mb-2">
-              <span className="text-xs font-medium text-gray-500">Kategori Top</span>
-              <div className="p-1.5 bg-amber-100 rounded-lg">
-                <svg className="w-4 h-4 text-amber-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <span className="text-xs font-medium text-gray-500 dark:text-gray-400">Kategori Top</span>
+              <div className="p-1.5 bg-amber-100 dark:bg-amber-900 rounded-lg">
+                <svg className="w-4 h-4 text-amber-600 dark:text-amber-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
                 </svg>
               </div>
             </div>
-            <p className="text-lg font-bold text-gray-900 truncate">
+            <p className="text-lg font-bold text-gray-900 dark:text-white truncate">
               {topCategory ? `${topCategory.icon} ${topCategory.name}` : "-"}
             </p>
-            <span className="text-xs text-amber-600">
+            <span className="text-xs text-amber-600 dark:text-amber-400">
               {topCategory ? `${topCategory.percentage}% dari pengeluaran` : "Belum ada data"}
             </span>
           </div>
         </div>
-      {/* Modal tampil data pemasukan/pengeluaran */}
-      {showModal && (
+
+        {showModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
           <div className="bg-white dark:bg-gray-900 rounded-xl shadow-lg max-w-md w-full p-6 relative border border-gray-100 dark:border-gray-700">
             <button className="absolute top-2 right-2 text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300" onClick={() => setShowModal(null)}>
@@ -288,19 +339,19 @@ export default function DashboardPage() {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
               </svg>
             </button>
-            <h2 className="text-xl font-bold mb-4 text-gray-900">{showModal === "income" ? "Data Pemasukan" : "Data Pengeluaran"}</h2>
+            <h2 className="text-xl font-bold mb-4 text-gray-900 dark:text-gray-100">{showModal === "income" ? "Data Pemasukan" : "Data Pengeluaran"}</h2>
             <div className="space-y-3 max-h-80 overflow-y-auto">
               {transactions.filter(t => t.type === showModal).length === 0 ? (
-                <p className="text-gray-500">Tidak ada data.</p>
+                <p className="text-gray-500 dark:text-gray-400">Tidak ada data.</p>
               ) : (
                 transactions.filter(t => t.type === showModal).map(t => (
-                  <div key={t.id} className="flex items-center gap-3 p-3 rounded-lg bg-gray-50">
+                  <div key={t.id} className="flex items-center gap-3 p-3 rounded-lg bg-gray-50 dark:bg-gray-800">
                     <span className="text-2xl">{t.icon}</span>
                     <div className="flex-1">
-                      <div className="font-semibold text-gray-900">{t.description}</div>
-                      <div className="text-xs text-gray-500">{t.category} • {formatRelativeDate(t.date)}</div>
+                      <div className="font-semibold text-gray-900 dark:text-white">{t.description}</div>
+                      <div className="text-xs text-gray-500 dark:text-gray-400">{t.category} • {formatRelativeDate(t.date)}</div>
                     </div>
-                    <span className={showModal === "income" ? "text-green-600 font-bold" : "text-red-600 font-bold"}>
+                    <span className={showModal === "income" ? "text-green-600 dark:text-green-400 font-bold" : "text-red-600 dark:text-red-400 font-bold"}>
                       {formatRupiah(t.amount)}
                     </span>
                   </div>
@@ -311,13 +362,11 @@ export default function DashboardPage() {
         </div>
       )}
 
-
-
         <ReminderAlert transactions={transactions} />
 
         <ChartSection transactions={transactions} />
 
-        <div className="bg-gradient-to-br from-indigo-600 to-purple-600 rounded-2xl p-4 text-white shadow-lg">
+        <div className="bg-gradient-to-br from-indigo-600 to-purple-600 dark:from-indigo-700 dark:to-purple-700 rounded-2xl p-4 text-white shadow-lg">
           <div className="flex items-start gap-3">
             <div className="p-2 bg-white/20 rounded-xl shrink-0">
               <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -336,8 +385,8 @@ export default function DashboardPage() {
         </div>
 
         {categoryData.length > 0 && (
-          <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
-            <h3 className="font-semibold text-gray-900 mb-3">Distribusi Pengeluaran & Budgeting</h3>
+          <div className="bg-white dark:bg-gray-900 rounded-2xl p-4 shadow-sm border border-gray-100 dark:border-gray-700">
+            <h3 className="font-semibold text-gray-900 dark:text-white mb-3">Distribusi Pengeluaran & Budgeting</h3>
             <div className="space-y-2">
               {categoryData.map((cat) => {
                 const budget = budgets[cat.name];
@@ -352,20 +401,20 @@ export default function DashboardPage() {
                     <span className="text-lg leading-6">{cat.icon}</span>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-start justify-between gap-3 mb-1">
-                        <span className="text-sm text-gray-700 truncate">{cat.name}</span>
+                        <span className="text-sm text-gray-700 dark:text-gray-300 truncate">{cat.name}</span>
                         <div className="text-right shrink-0">
-                          <div className="text-sm font-medium text-gray-900">{formatRupiah(cat.value)}</div>
+                          <div className="text-sm font-medium text-gray-900 dark:text-white">{formatRupiah(cat.value)}</div>
                           {budget && (
                             <div className={usageRatio! >= 1
-                              ? "text-xs text-red-600"
-                              : "text-xs text-indigo-600"}
+                              ? "text-xs text-red-600 dark:text-red-400"
+                              : "text-xs text-indigo-600 dark:text-indigo-400"}
                             >
                               Batas: {formatRupiah(budget)} ({usagePercent}%)
                             </div>
                           )}
                         </div>
                       </div>
-                      <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
+                      <div className="h-2 bg-gray-100 dark:bg-gray-700 rounded-full overflow-hidden">
                         <div
                           className="h-full rounded-full transition-all duration-500"
                           style={{
@@ -376,7 +425,7 @@ export default function DashboardPage() {
                       </div>
                     </div>
                     {budget && usageRatio! >= 1 && (
-                      <span className="text-xs text-red-600 font-semibold shrink-0">Over</span>
+                      <span className="text-xs text-red-600 dark:text-red-400 font-semibold shrink-0">Over</span>
                     )}
                   </div>
                 );
@@ -385,9 +434,9 @@ export default function DashboardPage() {
           </div>
         )}
 
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-          <div className="flex items-center justify-between p-4 border-b border-gray-100">
-            <h3 className="font-semibold text-gray-900">Transaksi Terbaru</h3>
+        <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
+          <div className="flex items-center justify-between p-4 border-b border-gray-100 dark:border-gray-700">
+            <h3 className="font-semibold text-gray-900 dark:text-white">Transaksi Terbaru</h3>
             <div className="flex items-center gap-2">
               <button
                 onClick={() => exportToCSV(transactions.map(t => ({ ...t, note: (t as unknown as Transaction).note ?? '' })))}
@@ -395,31 +444,31 @@ export default function DashboardPage() {
               >
                 Download CSV
               </button>
-              <Link href="/transactions" className="text-xs text-indigo-600 font-medium hover:text-indigo-700">
+              <Link href="/transactions" className="text-xs text-indigo-600 dark:text-indigo-400 font-medium hover:text-indigo-700">
                 Lihat Semua
               </Link>
             </div>
           </div>
 
-          <div className="divide-y divide-gray-100">
+          <div className="divide-y divide-gray-100 dark:divide-gray-700">
             {recentTransactions.length === 0 ? (
-              <div className="text-center py-8 text-gray-500">
+              <div className="text-center py-8 text-gray-500 dark:text-gray-400">
                 <p>Belum ada transaksi</p>
               </div>
             ) : (
               recentTransactions.map((t) => (
-                <div key={t.id} className="flex items-center gap-3 p-4 hover:bg-gray-50 transition-colors">
+                <div key={t.id} className="flex items-center gap-3 p-4 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
                   <div className={`w-10 h-10 rounded-full flex items-center justify-center text-lg shrink-0 ${
-                    t.type === "income" ? "bg-green-100" : "bg-gray-100"
+                    t.type === "income" ? "bg-green-100 dark:bg-green-900" : "bg-gray-100 dark:bg-gray-700"
                   }`}>
                     {t.icon}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="font-medium text-gray-900 text-sm truncate">{t.description}</p>
-                    <p className="text-xs text-gray-500">{t.category} • {formatRelativeDate(t.date)}</p>
+                    <p className="font-medium text-gray-900 dark:text-white text-sm truncate">{t.description}</p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400">{t.category} • {formatRelativeDate(t.date)}</p>
                   </div>
                   <span className={`font-semibold text-sm shrink-0 ${
-                    t.type === "income" ? "text-green-600" : "text-red-600"
+                    t.type === "income" ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400"
                   }`}>
                     {t.type === "income" ? "+" : "-"}{formatRupiah(t.amount)}
                   </span>
@@ -430,9 +479,91 @@ export default function DashboardPage() {
         </div>
       </main>
 
+      <div className="fixed bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-gray-50 dark:from-gray-900 to-transparent pointer-events-none" />
+
+      {showAddModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
+          <div className="bg-white dark:bg-gray-900 rounded-xl shadow-lg max-w-md w-full p-6 relative border border-gray-100 dark:border-gray-700">
+            <button className="absolute top-2 right-2 text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300" onClick={() => setShowAddModal(false)}>
+              <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+            <h2 className="text-xl font-bold mb-4 text-gray-900 dark:text-gray-100">Tambah Transaksi</h2>
+            <form onSubmit={handleAddTransaction} className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Tipe</label>
+                <select
+                  value={formType}
+                  onChange={(e) => setFormType(e.target.value as "income" | "expense")}
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white dark:bg-slate-900 text-gray-900 dark:text-gray-100"
+                >
+                  <option value="expense">Pengeluaran</option>
+                  <option value="income">Pemasukan</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Kategori</label>
+                <select
+                  value={formCategory}
+                  onChange={(e) => setFormCategory(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white dark:bg-slate-900 text-gray-900 dark:text-gray-100"
+                >
+                  <option value="">Pilih kategori</option>
+                  {initialCategories.filter(c => c.type === formType).map(cat => (
+                    <option key={cat.id} value={cat.name}>{cat.icon} {cat.name}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Jumlah</label>
+                <input
+                  type="number"
+                  value={formAmount}
+                  onChange={(e) => setFormAmount(e.target.value)}
+                  placeholder="0"
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white dark:bg-slate-900 text-gray-900 dark:text-gray-100"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Deskripsi (opsional)</label>
+                <input
+                  type="text"
+                  value={formDescription}
+                  onChange={(e) => setFormDescription(e.target.value)}
+                  placeholder="Catatan"
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white dark:bg-slate-900 text-gray-900 dark:text-gray-100"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Tanggal</label>
+                <input
+                  type="date"
+                  value={formDate}
+                  onChange={(e) => setFormDate(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white dark:bg-slate-900 text-gray-900 dark:text-gray-100"
+                />
+              </div>
+
+              <button
+                type="submit"
+                disabled={isSubmitting}
+                className="w-full bg-indigo-600 hover:bg-indigo-700 disabled:bg-gray-400 text-white font-semibold py-2 rounded-lg transition"
+              >
+                {isSubmitting ? "Menyimpan..." : "Simpan"}
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
+
       <nav className="fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-700 pb-safe z-40">
         <div className="flex items-center justify-around px-2 py-2">
-          <Link href="/" className="flex flex-col items-center gap-1 px-3 py-2 rounded-xl text-indigo-600 bg-indigo-50">
+          <Link href="/" className="flex flex-col items-center gap-1 px-3 py-2 rounded-xl text-indigo-600 bg-indigo-50 dark:bg-indigo-900 dark:text-indigo-300">
             <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
             </svg>
@@ -454,19 +585,25 @@ export default function DashboardPage() {
             <span className="text-xs font-medium">Anggaran</span>
           </Link>
 
+          <button
+            onClick={() => setShowAddModal(true)}
+            className="w-14 h-14 bg-indigo-600 hover:bg-indigo-700 text-white rounded-full shadow-lg shadow-indigo-500/40 flex items-center justify-center transition-all active:scale-95 -mt-6"
+            title="Tambah Transaksi"
+          >
+            <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+            </svg>
+          </button>
+
           <Link href="/investasi" className="flex flex-col items-center gap-1 px-3 py-2 rounded-xl text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800">
             <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
             </svg>
             <span className="text-xs font-medium">Investasi</span>
           </Link>
-
-          {/* AI menu removed */}
         </div>
         <div className="h-1 w-32 bg-gray-300 dark:bg-gray-600 rounded-full mx-auto mb-2"></div>
       </nav>
-
-      <FloatingActionButton onCreateTransaction={addTransaction} />
     </div>
   );
 }
