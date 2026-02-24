@@ -10,7 +10,7 @@ export default function ThemeToggle() {
     <button
       type="button"
       onClick={toggleTheme}
-      className="fixed right-4 bottom-24 z-50 p-3 rounded-full border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 shadow-sm hover:bg-gray-100 dark:hover:bg-gray-800 transition"
+      className="fixed right-4 bottom-3 z-50 p-2.5 rounded-full border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 shadow-sm hover:bg-gray-100 dark:hover:bg-gray-800 transition"
       title={isDark ? "Aktifkan mode siang" : "Aktifkan mode malam"}
       aria-label={isDark ? "Aktifkan mode siang" : "Aktifkan mode malam"}
     >
