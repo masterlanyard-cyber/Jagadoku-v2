@@ -48,16 +48,18 @@ export default function ReminderAlert({ transactions, dailyLimit }: ReminderAler
 
   return (
     <div className={`rounded-2xl p-4 mb-4 ${
-      isOverLimit ? 'bg-red-50 border border-red-200' : 'bg-amber-50 border border-amber-200'
+      isOverLimit
+        ? 'bg-red-50 border border-red-200 dark:bg-red-950/40 dark:border-red-900'
+        : 'bg-amber-50 border border-amber-200 dark:bg-amber-950/40 dark:border-amber-900'
     }`}>
       <div className="flex items-start justify-between">
         <div className="flex items-start gap-3">
           <span className="text-2xl">{isOverLimit ? '🚨' : '⚠️'}</span>
           <div>
-            <h3 className={`font-semibold text-sm ${isOverLimit ? 'text-red-800' : 'text-amber-800'}`}>
+            <h3 className={`font-semibold text-sm ${isOverLimit ? 'text-red-800 dark:text-red-300' : 'text-amber-800 dark:text-amber-300'}`}>
               {isOverLimit ? 'Batas Pengeluaran Harian Terlampaui!' : 'Pengeluaran Hari Ini Tinggi'}
             </h3>
-            <p className={`text-xs mt-1 ${isOverLimit ? 'text-red-600' : 'text-amber-700'}`}>
+            <p className={`text-xs mt-1 ${isOverLimit ? 'text-red-600 dark:text-red-400' : 'text-amber-700 dark:text-amber-400'}`}>
               Anda sudah mengeluarkan <strong>Rp {todayExpense.toLocaleString('id-ID')}</strong> hari ini
               {isOverLimit 
                 ? ` (melebihi batas Rp ${dailyLimit.toLocaleString('id-ID')})`
@@ -66,12 +68,12 @@ export default function ReminderAlert({ transactions, dailyLimit }: ReminderAler
             </p>
           </div>
         </div>
-        <button onClick={() => setDismissedKey(currentExpenseKey)} className="text-gray-400 hover:text-gray-600 text-lg">
+        <button onClick={() => setDismissedKey(currentExpenseKey)} className="text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300 text-lg">
           ×
         </button>
       </div>
       <div className="mt-3">
-        <div className="w-full bg-gray-200 rounded-full h-2">
+        <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
           <div 
             className={`h-2 rounded-full transition-all duration-500 ${isOverLimit ? 'bg-red-500' : 'bg-amber-500'}`}
             style={{ width: `${Math.min(percentage, 100)}%` }}

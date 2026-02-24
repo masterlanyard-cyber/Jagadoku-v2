@@ -15,7 +15,7 @@ export default function RegisterPage() {
     <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
       <div className="text-center">
         <div className="w-12 h-12 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin mx-auto mb-3"></div>
-        <p className="text-gray-600">Mengarahkan ke halaman login...</p>
+        <p className="text-gray-600 dark:text-gray-300">Mengarahkan ke halaman login...</p>
       </div>
     </div>
   );

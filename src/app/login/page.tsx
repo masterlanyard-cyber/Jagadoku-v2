@@ -57,9 +57,9 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
-      <div className="max-w-md w-full space-y-8 bg-white p-8 rounded-xl shadow-lg">
+      <div className="max-w-md w-full space-y-8 bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-700 p-8 rounded-xl shadow-lg">
         <div className="text-center">
-          <div className="mx-auto mb-3 h-24 w-24 rounded-2xl overflow-hidden bg-white">
+          <div className="mx-auto mb-3 h-24 w-24 rounded-2xl overflow-hidden bg-white dark:bg-gray-900">
             <Image
               src="/icons/android-chrome-192x192.png"
               alt="Jagadoku"
@@ -69,8 +69,8 @@ export default function LoginPage() {
             />
           </div>
           <h1 className="text-3xl font-bold text-gray-900">JagaDoku</h1>
-          <p className="text-sm text-gray-600 mt-1">Manajemen Keuangan Personal</p>
-          <p className="mt-2 text-gray-600">Masuk dengan akun Google (Gmail)</p>
+          <p className="text-sm text-gray-600 dark:text-gray-300 mt-1">Manajemen Keuangan Personal</p>
+          <p className="mt-2 text-gray-600 dark:text-gray-300">Masuk dengan akun Google (Gmail)</p>
         </div>
 
         {error && (
@@ -88,7 +88,7 @@ export default function LoginPage() {
           >
             {loading ? 'Memproses...' : 'Masuk dengan Google'}
           </button>
-          <p className="text-center text-xs text-gray-400">Terinspirasi oleh Agus</p>
+          <p className="text-center text-xs text-gray-400 dark:text-gray-500">Terinspirasi oleh Agus</p>
         </div>
       </div>
     </div>

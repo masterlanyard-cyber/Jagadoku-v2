@@ -76,23 +76,23 @@ export default function AuthCodePage() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
-      <div className="max-w-md w-full space-y-6 bg-white p-8 rounded-xl shadow-lg">
+      <div className="max-w-md w-full space-y-6 bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-700 p-8 rounded-xl shadow-lg">
         <div className="text-center">
           <h1 className="text-2xl font-bold text-gray-900">Kode Otentikasi</h1>
-          <p className="mt-2 text-gray-600 text-sm">
+          <p className="mt-2 text-gray-600 dark:text-gray-300 text-sm">
             Untuk keamanan akun baru, masukkan kode yang dikirim ke Gmail Anda.
           </p>
-          <p className="text-gray-500 text-xs mt-1">{user.email}</p>
+          <p className="text-gray-500 dark:text-gray-400 text-xs mt-1">{user.email}</p>
         </div>
 
         {error && (
-          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
+          <div className="bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-900 text-red-700 dark:text-red-300 px-4 py-3 rounded-lg text-sm">
             {error}
           </div>
         )}
 
         {success && (
-          <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg text-sm">
+          <div className="bg-green-50 dark:bg-green-950/40 border border-green-200 dark:border-green-900 text-green-700 dark:text-green-300 px-4 py-3 rounded-lg text-sm">
             {success}
           </div>
         )}
@@ -108,7 +108,7 @@ export default function AuthCodePage() {
 
         <form onSubmit={handleVerifyCode} className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Kode Otentikasi</label>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Kode Otentikasi</label>
             <input
               type="text"
               inputMode="numeric"
@@ -116,7 +116,7 @@ export default function AuthCodePage() {
               value={code}
               onChange={(e) => setCode(e.target.value.replace(/\D/g, ''))}
               required
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition"
+              className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition bg-white dark:bg-slate-900 text-gray-900 dark:text-gray-100"
               placeholder="6 digit kode"
             />
           </div>

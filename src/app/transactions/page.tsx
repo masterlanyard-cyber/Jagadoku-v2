@@ -130,12 +130,12 @@ export default function TransactionsPage() {
       </div>
 
       <div className="px-4 mb-4">
-        <div className="bg-white rounded-xl border border-gray-200 p-3">
-          <label className="block text-xs font-medium text-gray-600 mb-1">Lihat per bulan</label>
+        <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 p-3">
+          <label className="block text-xs font-medium text-gray-600 dark:text-gray-300 mb-1">Lihat per bulan</label>
           <select
             value={selectedMonth}
             onChange={(e) => setSelectedMonth(e.target.value)}
-            className="w-full px-3 py-2 rounded-lg border border-gray-300 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            className="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 text-sm text-gray-700 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white dark:bg-slate-900"
           >
             <option value="all">Semua Bulan</option>
             {monthOptions.map((month) => (
@@ -155,11 +155,11 @@ export default function TransactionsPage() {
       </div>
 
       <div className="px-4 mb-4">
-        <div className="flex gap-2 p-1 bg-gray-100 rounded-xl">
+        <div className="flex gap-2 p-1 bg-gray-100 dark:bg-gray-800 rounded-xl">
           <button
             onClick={() => setFilter("all")}
             className={`flex-1 py-2 px-4 rounded-lg text-sm font-medium transition-all ${
-              filter === "all" ? "bg-white text-gray-900 shadow-sm" : "text-gray-500 hover:text-gray-700"
+              filter === "all" ? "bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 shadow-sm" : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
             }`}
           >
             Semua
@@ -167,7 +167,7 @@ export default function TransactionsPage() {
           <button
             onClick={() => setFilter("income")}
             className={`flex-1 py-2 px-4 rounded-lg text-sm font-medium transition-all ${
-              filter === "income" ? "bg-white text-green-600 shadow-sm" : "text-gray-500 hover:text-gray-700"
+              filter === "income" ? "bg-white dark:bg-gray-900 text-green-600 shadow-sm" : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
             }`}
           >
             Pemasukan
@@ -175,7 +175,7 @@ export default function TransactionsPage() {
           <button
             onClick={() => setFilter("expense")}
             className={`flex-1 py-2 px-4 rounded-lg text-sm font-medium transition-all ${
-              filter === "expense" ? "bg-white text-red-600 shadow-sm" : "text-gray-500 hover:text-gray-700"
+              filter === "expense" ? "bg-white dark:bg-gray-900 text-red-600 shadow-sm" : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
             }`}
           >
             Pengeluaran
@@ -202,7 +202,7 @@ export default function TransactionsPage() {
           filteredTransactions.map((t) => (
             <div 
               key={t.id} 
-              className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 flex items-center gap-3"
+              className="bg-white dark:bg-gray-900 rounded-2xl p-4 shadow-sm border border-gray-100 dark:border-gray-700 flex items-center gap-3"
             >
               <div className={`w-12 h-12 rounded-full flex items-center justify-center text-xl shrink-0 ${
                 t.type === "income" ? "bg-green-100" : "bg-gray-100"
@@ -211,7 +211,7 @@ export default function TransactionsPage() {
               </div>
               <div className="flex-1 min-w-0">
                 <p className="font-medium text-gray-900 truncate">{t.description}</p>
-                <p className="text-xs text-gray-500">{t.category} • {t.date}</p>
+                <p className="text-xs text-gray-500 dark:text-gray-400">{t.category} • {t.date}</p>
               </div>
               <div className="text-right shrink-0">
                 <p className={`font-semibold ${
@@ -231,9 +231,9 @@ export default function TransactionsPage() {
         )}
       </div>
 
-      <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 pb-safe z-40">
+      <nav className="fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-700 pb-safe z-40">
         <div className="flex items-center justify-around px-2 py-2">
-          <Link href="/" className="flex flex-col items-center gap-1 px-3 py-2 rounded-xl text-gray-400 hover:text-gray-600 hover:bg-gray-50">
+          <Link href="/" className="flex flex-col items-center gap-1 px-3 py-2 rounded-xl text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800">
             <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
             </svg>
@@ -247,7 +247,7 @@ export default function TransactionsPage() {
             <span className="text-xs font-medium">Transaksi</span>
           </Link>
           
-          <Link href="/budget" className="flex flex-col items-center gap-1 px-3 py-2 rounded-xl text-gray-400 hover:text-gray-600 hover:bg-gray-50">
+          <Link href="/budget" className="flex flex-col items-center gap-1 px-3 py-2 rounded-xl text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800">
             <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z" />
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.488 9H15V3.512A9.025 9.025 0 0120.488 9z" />
@@ -257,7 +257,7 @@ export default function TransactionsPage() {
           
           {/* AI menu removed */}
         </div>
-        <div className="h-1 w-32 bg-gray-300 rounded-full mx-auto mb-2"></div>
+        <div className="h-1 w-32 bg-gray-300 dark:bg-gray-600 rounded-full mx-auto mb-2"></div>
       </nav>
 
       <FloatingActionButton onAddTransaction={loadTransactions} />

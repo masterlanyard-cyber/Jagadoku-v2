@@ -61,7 +61,7 @@ export default function ProfilePage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-500 to-purple-600 p-4 pb-24">
+    <div className="min-h-screen bg-gradient-to-br from-indigo-500 to-purple-600 dark:from-slate-900 dark:to-indigo-950 p-4 pb-24">
       <div className="max-w-md mx-auto">
         <div className="flex items-center justify-between mb-6 pt-4">
           <Link href="/" className="text-white hover:text-indigo-100 font-medium">← Kembali</Link>
@@ -70,22 +70,22 @@ export default function ProfilePage() {
         </div>
 
         {/* Profile Card */}
-        <div className="bg-white rounded-3xl shadow-2xl p-6 mb-4">
+        <div className="bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-700 rounded-3xl shadow-2xl p-6 mb-4">
           <div className="text-center mb-6">
             <div className="w-20 h-20 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-4">
               <span className="text-white font-bold text-3xl">{user.email?.[0].toUpperCase()}</span>
             </div>
-            <h2 className="text-xl font-bold text-gray-900">{user.displayName || "Pengguna"}</h2>
-            <p className="text-gray-500 text-sm">{user.email}</p>
-            <p className="text-gray-400 text-xs mt-1">Masuk dengan Google</p>
+            <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100">{user.displayName || "Pengguna"}</h2>
+            <p className="text-gray-500 dark:text-gray-400 text-sm">{user.email}</p>
+            <p className="text-gray-400 dark:text-gray-500 text-xs mt-1">Masuk dengan Google</p>
           </div>
 
           {/* Edit Name Section */}
-          <div className="border-t pt-6 mb-6">
-            <h3 className="font-semibold text-gray-900 mb-4">Edit Nama</h3>
+          <div className="border-t border-gray-200 dark:border-gray-700 pt-6 mb-6">
+            <h3 className="font-semibold text-gray-900 dark:text-gray-100 mb-4">Edit Nama</h3>
             
-            {nameError && <div className="p-3 bg-red-100 text-red-700 rounded-xl text-sm mb-4">{nameError}</div>}
-            {nameSuccess && <div className="p-3 bg-green-100 text-green-700 rounded-xl text-sm mb-4">{nameSuccess}</div>}
+            {nameError && <div className="p-3 bg-red-100 dark:bg-red-950/40 text-red-700 dark:text-red-300 rounded-xl text-sm mb-4">{nameError}</div>}
+            {nameSuccess && <div className="p-3 bg-green-100 dark:bg-green-950/40 text-green-700 dark:text-green-300 rounded-xl text-sm mb-4">{nameSuccess}</div>}
 
             {editingName ? (
               <form onSubmit={handleUpdateDisplayName} className="space-y-3">
@@ -94,7 +94,7 @@ export default function ProfilePage() {
                   value={displayName}
                   onChange={(e) => setDisplayName(e.target.value)}
                   placeholder="Masukkan nama baru"
-                  className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-indigo-500 outline-none transition-all"
+                  className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 dark:border-gray-600 focus:border-indigo-500 outline-none transition-all bg-white dark:bg-slate-900 text-gray-900 dark:text-gray-100"
                   autoFocus
                 />
                 <div className="flex gap-2">
@@ -111,7 +111,7 @@ export default function ProfilePage() {
                       setDisplayName(user.displayName || "");
                       setNameError("");
                     }}
-                    className="flex-1 py-2 bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold rounded-xl transition-all"
+                    className="flex-1 py-2 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-200 font-semibold rounded-xl transition-all"
                   >
                     Batal
                   </button>
@@ -123,7 +123,7 @@ export default function ProfilePage() {
                   setEditingName(true);
                   setDisplayName(user.displayName || "");
                 }}
-                className="w-full py-3 bg-gray-50 hover:bg-gray-100 text-gray-700 font-semibold rounded-xl transition-all border border-gray-200"
+                className="w-full py-3 bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-200 font-semibold rounded-xl transition-all border border-gray-200 dark:border-gray-600"
               >
                 Ubah Nama
               </button>

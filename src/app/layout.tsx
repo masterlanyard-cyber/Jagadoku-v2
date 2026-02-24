@@ -3,6 +3,8 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "@/context/AuthContext";
+import { ThemeProvider } from "@/context/ThemeContext";
+import ThemeToggle from "@/components/ThemeToggle";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -27,11 +29,14 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="id" data-scroll-behavior="smooth">
+    <html lang="id" data-scroll-behavior="smooth" suppressHydrationWarning>
       <body className={inter.className}>
-        <AuthProvider>
-          {children}
-        </AuthProvider>
+        <ThemeProvider>
+          <AuthProvider>
+            {children}
+            <ThemeToggle />
+          </AuthProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

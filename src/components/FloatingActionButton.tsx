@@ -137,17 +137,17 @@ export default function FloatingActionButton({ onAddTransaction, onTransactionAd
       {/* Modal untuk menambah transaksi */}
       {showAddModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
-          <div className="bg-white rounded-xl shadow-lg max-w-md w-full p-6 relative">
-            <button className="absolute top-2 right-2 text-gray-400 hover:text-gray-600" onClick={() => setShowAddModal(false)}>
+          <div className="bg-white dark:bg-gray-900 rounded-xl shadow-lg max-w-md w-full p-6 relative border border-gray-100 dark:border-gray-700">
+            <button className="absolute top-2 right-2 text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300" onClick={() => setShowAddModal(false)}>
               <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
               </svg>
             </button>
-            <h2 className="text-xl font-bold mb-4 text-gray-900">Tambah Transaksi</h2>
+            <h2 className="text-xl font-bold mb-4 text-gray-900 dark:text-gray-100">Tambah Transaksi</h2>
             <form onSubmit={handleAddTransaction} className="space-y-4">
               {/* Tipe Transaksi */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Tipe</label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Tipe</label>
                 <div className="flex gap-4">
                   <label className="flex items-center gap-2 cursor-pointer">
                     <input
@@ -158,7 +158,7 @@ export default function FloatingActionButton({ onAddTransaction, onTransactionAd
                       onChange={(e) => setFormType(e.target.value as "income" | "expense")}
                       className="w-4 h-4"
                     />
-                    <span className="text-sm text-gray-700">Pemasukan</span>
+                    <span className="text-sm text-gray-700 dark:text-gray-300">Pemasukan</span>
                   </label>
                   <label className="flex items-center gap-2 cursor-pointer">
                     <input
@@ -169,18 +169,18 @@ export default function FloatingActionButton({ onAddTransaction, onTransactionAd
                       onChange={(e) => setFormType(e.target.value as "income" | "expense")}
                       className="w-4 h-4"
                     />
-                    <span className="text-sm text-gray-700">Pengeluaran</span>
+                    <span className="text-sm text-gray-700 dark:text-gray-300">Pengeluaran</span>
                   </label>
                 </div>
               </div>
 
               {/* Kategori */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Kategori</label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Kategori</label>
                 <select
                   value={formCategory}
                   onChange={(e) => setFormCategory(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white dark:bg-slate-900 text-gray-900 dark:text-gray-100"
                 >
                   <option value="">Pilih kategori</option>
                   {initialCategories
@@ -193,36 +193,36 @@ export default function FloatingActionButton({ onAddTransaction, onTransactionAd
 
               {/* Jumlah */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Jumlah</label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Jumlah</label>
                 <input
                   type="number"
                   value={formAmount}
                   onChange={(e) => setFormAmount(e.target.value)}
                   placeholder="0"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white dark:bg-slate-900 text-gray-900 dark:text-gray-100"
                 />
               </div>
 
               {/* Deskripsi */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Deskripsi</label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Deskripsi</label>
                 <input
                   type="text"
                   value={formDescription}
                   onChange={(e) => setFormDescription(e.target.value)}
                   placeholder="Masukkan deskripsi"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white dark:bg-slate-900 text-gray-900 dark:text-gray-100"
                 />
               </div>
 
               {/* Tanggal */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Tanggal</label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Tanggal</label>
                 <input
                   type="date"
                   value={formDate}
                   onChange={(e) => setFormDate(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white dark:bg-slate-900 text-gray-900 dark:text-gray-100"
                 />
               </div>
 

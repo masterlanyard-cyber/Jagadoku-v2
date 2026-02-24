@@ -15,6 +15,7 @@ import {
   Cell
 } from 'recharts';
 import { formatDateInputLocal, parseLocalDate } from '@/lib/date';
+import { useTheme } from '@/context/ThemeContext';
 
 interface Transaction {
   id: string;
@@ -31,6 +32,18 @@ interface ChartSectionProps {
 }
 
 export default function ChartSection({ transactions }: ChartSectionProps) {
+  const { theme } = useTheme();
+  const isDark = theme === 'dark';
+
+  const chartGrid = isDark ? '#374151' : '#f0f0f0';
+  const chartAxis = isDark ? '#9ca3af' : '#9ca3af';
+  const tooltipStyle = {
+    borderRadius: '8px',
+    border: isDark ? '1px solid #374151' : 'none',
+    backgroundColor: isDark ? '#111827' : '#ffffff',
+    color: isDark ? '#f3f4f6' : '#111827',
+    boxShadow: isDark ? 'none' : '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
+  };
   const last7Days = useMemo(() => {
     return Array.from({ length: 7 }, (_, i) => {
       const date = new Date();
@@ -92,31 +105,31 @@ export default function ChartSection({ transactions }: ChartSectionProps) {
 
   if (transactions.length === 0) {
     return (
-      <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
-        <h3 className="font-semibold text-gray-900 mb-3">Grafik Keuangan</h3>
-        <p className="text-gray-500 text-center py-8 text-sm">Belum ada data untuk ditampilkan</p>
+      <div className="bg-white dark:bg-gray-900 rounded-2xl p-4 shadow-sm border border-gray-100 dark:border-gray-700">
+        <h3 className="font-semibold text-gray-900 dark:text-gray-100 mb-3">Grafik Keuangan</h3>
+        <p className="text-gray-500 dark:text-gray-400 text-center py-8 text-sm">Belum ada data untuk ditampilkan</p>
       </div>
     );
   }
 
   return (
-    <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 space-y-6">
+    <div className="bg-white dark:bg-gray-900 rounded-2xl p-4 shadow-sm border border-gray-100 dark:border-gray-700 space-y-6">
       <div>
-        <h3 className="font-semibold text-gray-900 mb-3">7 Hari Terakhir</h3>
+        <h3 className="font-semibold text-gray-900 dark:text-gray-100 mb-3">7 Hari Terakhir</h3>
         <div className="h-[200px] w-full">
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={barData}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-              <XAxis dataKey="name" fontSize={10} tickMargin={5} stroke="#9ca3af" />
-              <YAxis fontSize={10} tickFormatter={(value) => `${value/1000}k`} stroke="#9ca3af" />
+              <CartesianGrid strokeDasharray="3 3" stroke={chartGrid} />
+              <XAxis dataKey="name" fontSize={10} tickMargin={5} stroke={chartAxis} />
+              <YAxis fontSize={10} tickFormatter={(value) => `${value/1000}k`} stroke={chartAxis} />
               <Tooltip 
                 formatter={(value: number | undefined) => [
                   value !== undefined ? `Rp ${value.toLocaleString('id-ID')}` : '-',
                   ''
                 ]}
-                contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)' }}
+                contentStyle={tooltipStyle}
               />
-              <Legend />
+              <Legend wrapperStyle={{ color: isDark ? '#d1d5db' : '#4b5563' }} />
               <Bar dataKey="Pemasukan" fill="#10b981" radius={[4, 4, 0, 0]} />
               <Bar dataKey="Pengeluaran" fill="#ef4444" radius={[4, 4, 0, 0]} />
             </BarChart>
@@ -126,7 +139,7 @@ export default function ChartSection({ transactions }: ChartSectionProps) {
 
       {pieData.length > 0 && (
         <div>
-          <h3 className="font-semibold text-gray-900 mb-3">Distribusi Kategori</h3>
+          <h3 className="font-semibold text-gray-900 dark:text-gray-100 mb-3">Distribusi Kategori</h3>
           <div className="h-[200px] w-full">
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
@@ -146,14 +159,14 @@ export default function ChartSection({ transactions }: ChartSectionProps) {
                 </Pie>
                 <Tooltip 
                    formatter={(value: number | undefined) => value !== undefined ? `Rp ${value.toLocaleString('id-ID')}` : '-'}
-                  contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)' }}
+                  contentStyle={tooltipStyle}
                 />
               </PieChart>
             </ResponsiveContainer>
           </div>
           <div className="mt-2 flex flex-wrap gap-3 justify-center">
             {pieData.map((item) => (
-              <div key={item.name} className="flex items-center gap-1 text-xs text-gray-600">
+              <div key={item.name} className="flex items-center gap-1 text-xs text-gray-600 dark:text-gray-300">
                 <span
                   className="inline-block w-2.5 h-2.5 rounded-full"
                   style={{ backgroundColor: item.color }}

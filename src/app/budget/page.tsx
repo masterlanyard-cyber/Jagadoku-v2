@@ -269,10 +269,10 @@ export default function BudgetPage() {
               return (
                 <div 
                   key={budget.category}
-                  className={`bg-white rounded-2xl p-4 shadow-sm border-2 transition-all ${
-                    isOverBudget ? "border-red-200 bg-red-50" : 
-                    isWarning ? "border-amber-200 bg-amber-50" : 
-                    "border-gray-100"
+                  className={`bg-white dark:bg-gray-900 rounded-2xl p-4 shadow-sm border-2 transition-all ${
+                    isOverBudget ? "border-red-200 bg-red-50 dark:border-red-900 dark:bg-red-950/40" : 
+                    isWarning ? "border-amber-200 bg-amber-50 dark:border-amber-900 dark:bg-amber-950/40" : 
+                    "border-gray-100 dark:border-gray-700"
                   }`}
                 >
                   <div className="flex items-center justify-between mb-3">
@@ -292,7 +292,7 @@ export default function BudgetPage() {
                     </div>
                     <button 
                       onClick={() => handleEditBudget(budget)}
-                      className="p-2 hover:bg-gray-100 rounded-lg text-gray-400 hover:text-gray-600"
+                      className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
                     >
                       <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
@@ -302,7 +302,7 @@ export default function BudgetPage() {
 
                   {/* Progress Bar */}
                   <div className="relative">
-                    <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
+                    <div className="h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
                       <div 
                         className={`h-full rounded-full transition-all duration-500 ${
                           percentage >= 100 ? "bg-red-500" :
@@ -326,21 +326,21 @@ export default function BudgetPage() {
 
                   {/* Warning Message */}
                   {percentage >= 100 && (
-                    <div className="mt-3 p-2 bg-red-100 rounded-lg flex items-center gap-2">
-                      <svg className="w-4 h-4 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <div className="mt-3 p-2 bg-red-100 dark:bg-red-950/50 rounded-lg flex items-center gap-2">
+                      <svg className="w-4 h-4 text-red-600 dark:text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
                       </svg>
-                      <span className="text-xs text-red-700 font-medium">
+                      <span className="text-xs text-red-700 dark:text-red-300 font-medium">
                         Budget melebihi batas! Kurangi pengeluaran {budget.category}.
                       </span>
                     </div>
                   )}
                   {percentage >= 80 && percentage < 100 && (
-                    <div className="mt-3 p-2 bg-amber-100 rounded-lg flex items-center gap-2">
-                      <svg className="w-4 h-4 text-amber-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <div className="mt-3 p-2 bg-amber-100 dark:bg-amber-950/50 rounded-lg flex items-center gap-2">
+                      <svg className="w-4 h-4 text-amber-600 dark:text-amber-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                       </svg>
-                      <span className="text-xs text-amber-700 font-medium">
+                      <span className="text-xs text-amber-700 dark:text-amber-300 font-medium">
                         Hampir mencapai batas. Waspadai pengeluaran!
                       </span>
                     </div>
@@ -352,16 +352,16 @@ export default function BudgetPage() {
         </div>
 
         {/* Tips Card */}
-        <div className="bg-blue-50 rounded-2xl p-4 border border-blue-100">
+        <div className="bg-blue-50 dark:bg-blue-950/40 rounded-2xl p-4 border border-blue-100 dark:border-blue-900">
           <div className="flex items-start gap-3">
-            <div className="p-2 bg-blue-100 rounded-xl shrink-0">
-              <svg className="w-5 h-5 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <div className="p-2 bg-blue-100 dark:bg-blue-900/50 rounded-xl shrink-0">
+              <svg className="w-5 h-5 text-blue-600 dark:text-blue-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
             </div>
             <div>
-              <h4 className="font-semibold text-blue-900 mb-1">💡 Tips Mengatur Anggaran</h4>
-              <ul className="text-sm text-blue-800 space-y-1">
+              <h4 className="font-semibold text-blue-900 dark:text-blue-300 mb-1">💡 Tips Mengatur Anggaran</h4>
+              <ul className="text-sm text-blue-800 dark:text-blue-200 space-y-1">
                 <li>• Ikuti aturan 50/30/20: 50% kebutuhan, 30% keinginan, 20% tabungan</li>
                 <li>• Review anggaran setiap awal bulan</li>
                 <li>• Kurangi kategori yang sering over budget</li>
@@ -374,12 +374,12 @@ export default function BudgetPage() {
       {/* Edit Budget Modal */}
       {showModal && editingBudget && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
-          <div className="bg-white rounded-2xl w-full max-w-sm p-5 shadow-xl">
+          <div className="bg-white dark:bg-gray-900 rounded-2xl w-full max-w-sm p-5 shadow-xl border border-gray-100 dark:border-gray-700">
             <div className="flex items-center justify-between mb-4">
               <h3 className="font-bold text-gray-900">Edit Anggaran</h3>
               <button 
                 onClick={() => setShowModal(false)}
-                className="p-2 hover:bg-gray-100 rounded-full"
+                className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full"
               >
                 <svg className="w-5 h-5 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -396,23 +396,23 @@ export default function BudgetPage() {
               </div>
               <div>
                 <h4 className="font-semibold text-gray-900">{editingBudget.category}</h4>
-                <p className="text-sm text-gray-500">
+                <p className="text-sm text-gray-500 dark:text-gray-400">
                   Sudah terpakai: {formatRupiah(editingBudget.spent)}
                 </p>
               </div>
             </div>
 
             <div className="mb-4">
-              <label className="block text-sm font-medium text-gray-700 mb-1.5">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
                 Nominal Anggaran
               </label>
               <div className="relative">
-                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 font-medium">Rp</span>
+                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 dark:text-gray-400 font-medium">Rp</span>
                 <input
                   type="text"
                   value={newBudgetAmount ? formatRupiah(parseInt(newBudgetAmount.replace(/\D/g, ''))).replace("Rp", "").trim() : ""}
                   onChange={(e) => setNewBudgetAmount(e.target.value.replace(/\D/g, ''))}
-                  className="w-full pl-12 pr-4 py-3 rounded-xl border-2 border-gray-200 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 outline-none transition-all text-lg font-semibold"
+                  className="w-full pl-12 pr-4 py-3 rounded-xl border-2 border-gray-200 dark:border-gray-600 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 outline-none transition-all text-lg font-semibold bg-white dark:bg-slate-900 text-gray-900 dark:text-gray-100"
                   placeholder="0"
                   autoFocus
                 />
@@ -422,7 +422,7 @@ export default function BudgetPage() {
             <div className="flex gap-2">
               <button
                 onClick={() => setShowModal(false)}
-                className="flex-1 py-3 px-4 rounded-xl border-2 border-gray-200 text-gray-700 font-medium hover:bg-gray-50 transition-colors"
+                className="flex-1 py-3 px-4 rounded-xl border-2 border-gray-200 dark:border-gray-600 text-gray-700 dark:text-gray-200 font-medium hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
               >
                 Batal
               </button>
@@ -440,10 +440,10 @@ export default function BudgetPage() {
       {/* Add Category Modal */}
       {showAddModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
-          <div className="bg-white rounded-2xl w-full max-w-sm p-5 shadow-xl">
+          <div className="bg-white dark:bg-gray-900 rounded-2xl w-full max-w-sm p-5 shadow-xl border border-gray-100 dark:border-gray-700">
             <div className="flex items-center justify-between mb-4">
               <h3 className="font-bold text-gray-900">Tambah Kategori Anggaran</h3>
-              <button onClick={() => setShowAddModal(false)} className="p-2 hover:bg-gray-100 rounded-full">
+              <button onClick={() => setShowAddModal(false)} className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full">
                 <svg className="w-5 h-5 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                 </svg>
@@ -451,27 +451,27 @@ export default function BudgetPage() {
             </div>
 
             <div className="mb-3">
-              <label className="block text-sm font-medium text-gray-700 mb-1">Nama Kategori</label>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Nama Kategori</label>
               <input
                 value={newCategoryName}
                 onChange={(e) => setNewCategoryName(e.target.value)}
                 placeholder="Contoh: Investasi"
-                className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-indigo-500 outline-none"
+                className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 dark:border-gray-600 focus:border-indigo-500 outline-none bg-white dark:bg-slate-900 text-gray-900 dark:text-gray-100"
               />
             </div>
 
             <div className="mb-4">
-              <label className="block text-sm font-medium text-gray-700 mb-1">Nominal Anggaran (Rp)</label>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Nominal Anggaran (Rp)</label>
               <input
                 value={newCategoryAmount}
                 onChange={(e) => setNewCategoryAmount(e.target.value.replace(/\D/g, ''))}
                 placeholder="0"
-                className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-indigo-500 outline-none"
+                className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 dark:border-gray-600 focus:border-indigo-500 outline-none bg-white dark:bg-slate-900 text-gray-900 dark:text-gray-100"
               />
             </div>
 
             <div className="flex gap-2">
-              <button onClick={() => setShowAddModal(false)} className="flex-1 py-3 px-4 rounded-xl border-2 border-gray-200 text-gray-700 font-medium">Batal</button>
+              <button onClick={() => setShowAddModal(false)} className="flex-1 py-3 px-4 rounded-xl border-2 border-gray-200 dark:border-gray-600 text-gray-700 dark:text-gray-200 font-medium">Batal</button>
               <button
                 onClick={() => {
                   const name = newCategoryName.trim();
@@ -493,16 +493,16 @@ export default function BudgetPage() {
       )}
 
       {/* Bottom Navigation */}
-      <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 pb-safe z-40">
+      <nav className="fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-700 pb-safe z-40">
         <div className="flex items-center justify-around px-2 py-2">
-          <Link href="/" className="flex flex-col items-center gap-1 px-3 py-2 rounded-xl text-gray-400 hover:text-gray-600 hover:bg-gray-50">
+          <Link href="/" className="flex flex-col items-center gap-1 px-3 py-2 rounded-xl text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800">
             <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
             </svg>
             <span className="text-xs font-medium">Beranda</span>
           </Link>
           
-          <Link href="/transactions" className="flex flex-col items-center gap-1 px-3 py-2 rounded-xl text-gray-400 hover:text-gray-600 hover:bg-gray-50">
+          <Link href="/transactions" className="flex flex-col items-center gap-1 px-3 py-2 rounded-xl text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800">
             <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
             </svg>
@@ -519,7 +519,7 @@ export default function BudgetPage() {
           
           {/* AI menu removed */}
         </div>
-        <div className="h-1 w-32 bg-gray-300 rounded-full mx-auto mb-2"></div>
+        <div className="h-1 w-32 bg-gray-300 dark:bg-gray-600 rounded-full mx-auto mb-2"></div>
       </nav>
 
       <FloatingActionButton onCreateTransaction={addTransaction} />
