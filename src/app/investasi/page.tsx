@@ -188,6 +188,29 @@ async function fetchUsStockBackdateChange(isoDate: string): Promise<number> {
   return getChangeFromHistory(rows, isoDate);
 }
 
+const initialCategories = [
+  { id: "makanan", name: "Makanan", icon: "🍔", type: "expense" },
+  { id: "transportasi", name: "Transportasi", icon: "🚗", type: "expense" },
+  { id: "belanja", name: "Belanja", icon: "🛍️", type: "expense" },
+  { id: "hiburan", name: "Hiburan", icon: "🎬", type: "expense" },
+  { id: "utilitas", name: "Utilitas", icon: "💡", type: "expense" },
+  { id: "kesehatan", name: "Kesehatan", icon: "💊", type: "expense" },
+  { id: "gaji", name: "Gaji", icon: "💰", type: "income" },
+  { id: "bonus", name: "Bonus", icon: "🎁", type: "income" },
+  { id: "lainnya", name: "Lainnya", icon: "📦", type: "expense" },
+];
+
+const investmentInstrumentsConst = [
+  "Saham US",
+  "Saham ID",
+  "Emas",
+  "Crypto",
+  "Reksa Dana",
+  "Obligasi",
+  "Deposito",
+  "Lainnya",
+];
+
 export default function InvestasiPage() {
   const router = useRouter();
   const { user, loading, needsAuthCode } = useAuth();
@@ -201,6 +224,7 @@ export default function InvestasiPage() {
   const [proxyActive, setProxyActive] = useState(false);
 
   const [showAddModal, setShowAddModal] = useState(false);
+  const [formMode, setFormMode] = useState<"transaction" | "investment">("investment");
   const [formType, setFormType] = useState<"income" | "expense">("expense");
   const [formAmount, setFormAmount] = useState("");
   const [formCategory, setFormCategory] = useState("Investasi");
@@ -218,16 +242,7 @@ export default function InvestasiPage() {
   const [formDate, setFormDate] = useState(getTodayDate());
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const investmentInstruments = [
-    "Saham US",
-    "Saham ID",
-    "Emas",
-    "Crypto",
-    "Reksa Dana",
-    "Obligasi",
-    "Deposito",
-    "Lainnya",
-  ];
+  const investmentInstruments = investmentInstrumentsConst;
 
   const investmentTransactions = useMemo(
     () => transactions.filter((transaction) => transaction.category === "Investasi"),
@@ -450,35 +465,58 @@ export default function InvestasiPage() {
   const handleAddTransaction = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!formAmount || !formInstrument) {
-      alert("Jumlah dan instrumen harus diisi!");
-      return;
+    if (formMode === "transaction") {
+      if (!formAmount || !formCategory) {
+        alert("Jumlah dan kategori harus diisi!");
+        return;
+      }
+    } else {
+      if (!formAmount || !formInstrument) {
+        alert("Jumlah dan instrumen harus diisi!");
+        return;
+      }
     }
 
     setIsSubmitting(true);
 
     try {
-      let description = `Instrumen: ${formInstrument}`;
-      if (formInstrument.toLowerCase().includes("saham us") && formUsdIdr) {
-        description += ` - USDIDR: ${formUsdIdr}`;
+      if (formMode === "transaction") {
+        const transactionData: Omit<Transaction, "id"> = {
+          amount: parseInt(formAmount),
+          type: formType as "income" | "expense",
+          category: formCategory,
+          description: formDescription,
+          date: formDate,
+          icon: initialCategories.find(c => c.name === formCategory)?.icon || "📦",
+        };
+        await addTransaction(transactionData);
+      } else {
+        // Investment transaction
+        let description = `Instrumen: ${formInstrument}`;
+        if (formInstrument.toLowerCase().includes("saham us") && formUsdIdr) {
+          description += ` - USDIDR: ${formUsdIdr}`;
+        }
+
+        const transactionData: Omit<Transaction, "id"> = {
+          amount: parseInt(formAmount),
+          type: "expense",
+          category: "Investasi",
+          description: description,
+          date: formDate,
+          icon: "📈",
+        };
+
+        await addTransaction(transactionData);
       }
-
-      const transactionData: Omit<Transaction, "id"> = {
-        amount: parseInt(formAmount),
-        type: "expense",
-        category: "Investasi",
-        description: description,
-        date: formDate,
-        icon: "📈",
-      };
-
-      await addTransaction(transactionData);
       
       // Reset form
       setFormAmount("");
+      setFormCategory("");
+      setFormDescription("");
       setFormInstrument("");
       setFormUsdIdr("");
       setFormDate(getTodayDate());
+      setFormMode("investment");
       setShowAddModal(false);
       alert("✓ Transaksi berhasil ditambahkan!");
     } catch (error) {
@@ -669,45 +707,124 @@ export default function InvestasiPage() {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
               </svg>
             </button>
-            <h2 className="text-xl font-bold mb-4 text-gray-900 dark:text-gray-100">Tambah Investasi</h2>
+            <h2 className="text-xl font-bold mb-4 text-gray-900 dark:text-gray-100">Tambah Transaksi</h2>
+            
+            {/* Mode Selection */}
+            <div className="mb-4 flex gap-2">
+              <button
+                onClick={() => setFormMode("transaction")}
+                className={`flex-1 py-2 px-3 rounded-lg font-medium transition ${
+                  formMode === "transaction"
+                    ? "bg-indigo-600 text-white"
+                    : "bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600"
+                }`}
+              >
+                Transaksi
+              </button>
+              <button
+                onClick={() => setFormMode("investment")}
+                className={`flex-1 py-2 px-3 rounded-lg font-medium transition ${
+                  formMode === "investment"
+                    ? "bg-indigo-600 text-white"
+                    : "bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600"
+                }`}
+              >
+                Investasi
+              </button>
+            </div>
+
             <form onSubmit={handleAddTransaction} className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Instrumen</label>
-                <select
-                  value={formInstrument}
-                  onChange={(e) => setFormInstrument(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white dark:bg-slate-900 text-gray-900 dark:text-gray-100"
-                >
-                  <option value="">Pilih instrumen</option>
-                  {investmentInstruments.map(inst => (
-                    <option key={inst} value={inst}>{inst}</option>
-                  ))}
-                </select>
-              </div>
+              {formMode === "transaction" ? (
+                <>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Tipe</label>
+                    <select
+                      value={formType}
+                      onChange={(e) => setFormType(e.target.value as "income" | "expense")}
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white dark:bg-slate-900 text-gray-900 dark:text-gray-100"
+                    >
+                      <option value="expense">Pengeluaran</option>
+                      <option value="income">Pemasukan</option>
+                    </select>
+                  </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Jumlah</label>
-                <input
-                  type="number"
-                  value={formAmount}
-                  onChange={(e) => setFormAmount(e.target.value)}
-                  placeholder="0"
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white dark:bg-slate-900 text-gray-900 dark:text-gray-100"
-                />
-              </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Kategori</label>
+                    <select
+                      value={formCategory}
+                      onChange={(e) => setFormCategory(e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white dark:bg-slate-900 text-gray-900 dark:text-gray-100"
+                    >
+                      <option value="">Pilih kategori</option>
+                      {initialCategories.filter(c => c.type === formType).map(cat => (
+                        <option key={cat.id} value={cat.name}>{cat.icon} {cat.name}</option>
+                      ))}
+                    </select>
+                  </div>
 
-              {formInstrument.toLowerCase().includes("saham us") && (
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Kurs USD/IDR (opsional)</label>
-                  <input
-                    type="number"
-                    value={formUsdIdr}
-                    onChange={(e) => setFormUsdIdr(e.target.value)}
-                    placeholder="15000"
-                    step="0.01"
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white dark:bg-slate-900 text-gray-900 dark:text-gray-100"
-                  />
-                </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Jumlah</label>
+                    <input
+                      type="number"
+                      value={formAmount}
+                      onChange={(e) => setFormAmount(e.target.value)}
+                      placeholder="0"
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white dark:bg-slate-900 text-gray-900 dark:text-gray-100"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Deskripsi (opsional)</label>
+                    <input
+                      type="text"
+                      value={formDescription}
+                      onChange={(e) => setFormDescription(e.target.value)}
+                      placeholder="Catatan"
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white dark:bg-slate-900 text-gray-900 dark:text-gray-100"
+                    />
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Instrumen</label>
+                    <select
+                      value={formInstrument}
+                      onChange={(e) => setFormInstrument(e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white dark:bg-slate-900 text-gray-900 dark:text-gray-100"
+                    >
+                      <option value="">Pilih instrumen</option>
+                      {investmentInstruments.map(inst => (
+                        <option key={inst} value={inst}>{inst}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Jumlah</label>
+                    <input
+                      type="number"
+                      value={formAmount}
+                      onChange={(e) => setFormAmount(e.target.value)}
+                      placeholder="0"
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white dark:bg-slate-900 text-gray-900 dark:text-gray-100"
+                    />
+                  </div>
+
+                  {formInstrument.toLowerCase().includes("saham us") && (
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Kurs USD/IDR (opsional)</label>
+                      <input
+                        type="number"
+                        value={formUsdIdr}
+                        onChange={(e) => setFormUsdIdr(e.target.value)}
+                        placeholder="15000"
+                        step="0.01"
+                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white dark:bg-slate-900 text-gray-900 dark:text-gray-100"
+                      />
+                    </div>
+                  )}
+                </>
               )}
 
               <div>

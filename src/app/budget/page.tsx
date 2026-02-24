@@ -84,12 +84,51 @@ function hslToHex(h: number, s: number, l: number) {
   return `#${f(0)}${f(8)}${f(4)}`;
 }
 
+const initialCategories = [
+  { id: "makanan", name: "Makanan", icon: "🍔", type: "expense" },
+  { id: "transportasi", name: "Transportasi", icon: "🚗", type: "expense" },
+  { id: "belanja", name: "Belanja", icon: "🛍️", type: "expense" },
+  { id: "hiburan", name: "Hiburan", icon: "🎬", type: "expense" },
+  { id: "utilitas", name: "Utilitas", icon: "💡", type: "expense" },
+  { id: "kesehatan", name: "Kesehatan", icon: "💊", type: "expense" },
+  { id: "gaji", name: "Gaji", icon: "💰", type: "income" },
+  { id: "bonus", name: "Bonus", icon: "🎁", type: "income" },
+  { id: "lainnya", name: "Lainnya", icon: "📦", type: "expense" },
+];
+
+const investmentInstruments = [
+  "Saham US",
+  "Saham ID",
+  "Emas",
+  "Crypto",
+  "Reksa Dana",
+  "Obligasi",
+  "Deposito",
+  "Lainnya",
+];
+
 export default function BudgetPage() {
   const router = useRouter();
   const { user, loading, needsAuthCode } = useAuth();
   const { transactions, addTransaction, isLoadingFromFirestore } = useTransactions([]);
   const { budgets, loadingBudgets, setBudget } = useBudgets();
   const [showAddModal, setShowAddModal] = useState(false);
+  const [formMode, setFormMode] = useState<"transaction" | "investment">("transaction");
+  const [formType, setFormType] = useState<"income" | "expense">("expense");
+  const [formAmount, setFormAmount] = useState("");
+  const [formCategory, setFormCategory] = useState("");
+  const [formDescription, setFormDescription] = useState("");
+  const [formInstrument, setFormInstrument] = useState("");
+  const [formUsdIdr, setFormUsdIdr] = useState("");
+  const getTodayDate = () => {
+    const now = new Date();
+    const yyyy = now.getFullYear();
+    const mm = String(now.getMonth() + 1).padStart(2, '0');
+    const dd = String(now.getDate()).padStart(2, '0');
+    return `${yyyy}-${mm}-${dd}`;
+  };
+  const [formDate, setFormDate] = useState(getTodayDate());
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [newCategoryName, setNewCategoryName] = useState("");
   const [newCategoryAmount, setNewCategoryAmount] = useState("");
   
@@ -183,6 +222,60 @@ export default function BudgetPage() {
     setShowModal(false);
     setEditingBudget(null);
     setNewBudgetAmount("");
+  };
+
+  const handleAddTransaction = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (formMode === "transaction") {
+      if (!formAmount || !formCategory) {
+        alert("Jumlah dan kategori harus diisi!");
+        return;
+      }
+    } else {
+      if (!formAmount || !formInstrument) {
+        alert("Jumlah dan instrumen harus diisi!");
+        return;
+      }
+    }
+
+    setIsSubmitting(true);
+    try {
+      if (formMode === "transaction") {
+        await addTransaction({
+          amount: parseInt(formAmount),
+          type: formType,
+          category: formCategory,
+          description: formDescription,
+          date: formDate,
+          icon: initialCategories.find(c => c.name === formCategory)?.icon || "📦",
+        });
+      } else {
+        // Investment transaction
+        const instrumentDescription = `Instrumen: ${formInstrument}${formUsdIdr ? ` (Kurs: ${formUsdIdr})` : ""}`;
+        await addTransaction({
+          amount: parseInt(formAmount),
+          type: "expense",
+          category: "Investasi",
+          description: instrumentDescription,
+          date: formDate,
+          icon: "💼",
+        });
+      }
+      setShowAddModal(false);
+      setFormAmount("");
+      setFormCategory("");
+      setFormDescription("");
+      setFormInstrument("");
+      setFormUsdIdr("");
+      setFormDate(getTodayDate());
+      setFormMode("transaction");
+    } catch (error) {
+      console.error("Error adding transaction:", error);
+      alert("Gagal menambah transaksi");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   if (loading || loadingBudgets || isLoadingFromFirestore) {
@@ -438,55 +531,151 @@ export default function BudgetPage() {
 
       {/* Add Category Modal */}
       {showAddModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
-          <div className="bg-white dark:bg-gray-900 rounded-2xl w-full max-w-sm p-5 shadow-xl border border-gray-100 dark:border-gray-700">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="font-bold text-gray-900">Tambah Kategori Anggaran</h3>
-              <button onClick={() => setShowAddModal(false)} className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full">
-                <svg className="w-5 h-5 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
-            </div>
-
-            <div className="mb-3">
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Nama Kategori</label>
-              <input
-                value={newCategoryName}
-                onChange={(e) => setNewCategoryName(e.target.value)}
-                placeholder="Contoh: Investasi"
-                className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 dark:border-gray-600 focus:border-indigo-500 outline-none bg-white dark:bg-slate-900 text-gray-900 dark:text-gray-100"
-              />
-            </div>
-
-            <div className="mb-4">
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Nominal Anggaran (Rp)</label>
-              <input
-                value={newCategoryAmount}
-                onChange={(e) => setNewCategoryAmount(e.target.value.replace(/\D/g, ''))}
-                placeholder="0"
-                className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 dark:border-gray-600 focus:border-indigo-500 outline-none bg-white dark:bg-slate-900 text-gray-900 dark:text-gray-100"
-              />
-            </div>
-
-            <div className="flex gap-2">
-              <button onClick={() => setShowAddModal(false)} className="flex-1 py-3 px-4 rounded-xl border-2 border-gray-200 dark:border-gray-600 text-gray-700 dark:text-gray-200 font-medium">Batal</button>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
+          <div className="bg-white dark:bg-gray-900 rounded-xl shadow-lg max-w-md w-full p-6 relative border border-gray-100 dark:border-gray-700">
+            <button className="absolute top-2 right-2 text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300" onClick={() => setShowAddModal(false)}>
+              <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+            <h2 className="text-xl font-bold mb-4 text-gray-900 dark:text-gray-100">Tambah Transaksi</h2>
+            
+            {/* Mode Selection */}
+            <div className="mb-4 flex gap-2">
               <button
-                onClick={() => {
-                  const name = newCategoryName.trim();
-                  const amount = parseInt(newCategoryAmount || '0', 10);
-                  if (!name) { alert('Masukkan nama kategori'); return; }
-                  if (isNaN(amount) || amount < 0) { alert('Nominal tidak valid'); return; }
-                  void setBudget(name, amount);
-                  setNewCategoryName('');
-                  setNewCategoryAmount('');
-                  setShowAddModal(false);
-                }}
-                className="flex-1 py-3 px-4 rounded-xl bg-indigo-600 text-white font-medium hover:bg-indigo-700"
+                onClick={() => setFormMode("transaction")}
+                className={`flex-1 py-2 px-3 rounded-lg font-medium transition ${
+                  formMode === "transaction"
+                    ? "bg-indigo-600 text-white"
+                    : "bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600"
+                }`}
               >
-                Tambah
+                Transaksi
+              </button>
+              <button
+                onClick={() => setFormMode("investment")}
+                className={`flex-1 py-2 px-3 rounded-lg font-medium transition ${
+                  formMode === "investment"
+                    ? "bg-indigo-600 text-white"
+                    : "bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600"
+                }`}
+              >
+                Investasi
               </button>
             </div>
+
+            <form onSubmit={handleAddTransaction} className="space-y-4">
+              {formMode === "transaction" ? (
+                <>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Tipe</label>
+                    <select
+                      value={formType}
+                      onChange={(e) => setFormType(e.target.value as "income" | "expense")}
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white dark:bg-slate-900 text-gray-900 dark:text-gray-100"
+                    >
+                      <option value="expense">Pengeluaran</option>
+                      <option value="income">Pemasukan</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Kategori</label>
+                    <select
+                      value={formCategory}
+                      onChange={(e) => setFormCategory(e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white dark:bg-slate-900 text-gray-900 dark:text-gray-100"
+                    >
+                      <option value="">Pilih kategori</option>
+                      {initialCategories.filter(c => c.type === formType).map(cat => (
+                        <option key={cat.id} value={cat.name}>{cat.icon} {cat.name}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Jumlah</label>
+                    <input
+                      type="number"
+                      value={formAmount}
+                      onChange={(e) => setFormAmount(e.target.value)}
+                      placeholder="0"
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white dark:bg-slate-900 text-gray-900 dark:text-gray-100"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Deskripsi (opsional)</label>
+                    <input
+                      type="text"
+                      value={formDescription}
+                      onChange={(e) => setFormDescription(e.target.value)}
+                      placeholder="Catatan"
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white dark:bg-slate-900 text-gray-900 dark:text-gray-100"
+                    />
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Instrumen</label>
+                    <select
+                      value={formInstrument}
+                      onChange={(e) => setFormInstrument(e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white dark:bg-slate-900 text-gray-900 dark:text-gray-100"
+                    >
+                      <option value="">Pilih instrumen</option>
+                      {investmentInstruments.map(inst => (
+                        <option key={inst} value={inst}>{inst}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Jumlah</label>
+                    <input
+                      type="number"
+                      value={formAmount}
+                      onChange={(e) => setFormAmount(e.target.value)}
+                      placeholder="0"
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white dark:bg-slate-900 text-gray-900 dark:text-gray-100"
+                    />
+                  </div>
+
+                  {formInstrument.toLowerCase().includes("saham us") && (
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Kurs USD/IDR (opsional)</label>
+                      <input
+                        type="number"
+                        value={formUsdIdr}
+                        onChange={(e) => setFormUsdIdr(e.target.value)}
+                        placeholder="15000"
+                        step="0.01"
+                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white dark:bg-slate-900 text-gray-900 dark:text-gray-100"
+                      />
+                    </div>
+                  )}
+                </>
+              )}
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Tanggal</label>
+                <input
+                  type="date"
+                  value={formDate}
+                  onChange={(e) => setFormDate(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white dark:bg-slate-900 text-gray-900 dark:text-gray-100"
+                />
+              </div>
+
+              <button
+                type="submit"
+                disabled={isSubmitting}
+                className="w-full bg-indigo-600 hover:bg-indigo-700 disabled:bg-gray-400 text-white font-semibold py-2 rounded-lg transition"
+              >
+                {isSubmitting ? "Menyimpan..." : "Simpan"}
+              </button>
+            </form>
           </div>
         </div>
       )}

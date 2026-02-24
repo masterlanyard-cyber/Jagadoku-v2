@@ -19,6 +19,17 @@ const initialCategories = [
   { id: "lainnya", name: "Lainnya", icon: "📦", type: "expense" },
 ];
 
+const investmentInstruments = [
+  "Saham US",
+  "Saham ID",
+  "Emas",
+  "Crypto",
+  "Reksa Dana",
+  "Obligasi",
+  "Deposito",
+  "Lainnya",
+];
+
 function formatRupiah(amount: number): string {
   return new Intl.NumberFormat("id-ID", {
     style: "currency",
@@ -35,10 +46,13 @@ export default function TransactionsPage() {
   const [filter, setFilter] = useState<"all" | "income" | "expense">("all");
   const [selectedMonth, setSelectedMonth] = useState<string>("all");
   const [showAddModal, setShowAddModal] = useState(false);
+  const [formMode, setFormMode] = useState<"transaction" | "investment">("transaction");
   const [formType, setFormType] = useState<"income" | "expense">("expense");
   const [formAmount, setFormAmount] = useState("");
   const [formCategory, setFormCategory] = useState("");
   const [formDescription, setFormDescription] = useState("");
+  const [formInstrument, setFormInstrument] = useState("");
+  const [formUsdIdr, setFormUsdIdr] = useState("");
   const getTodayDate = () => {
     const now = new Date();
     const yyyy = now.getFullYear();
@@ -118,26 +132,54 @@ export default function TransactionsPage() {
   const handleAddTransaction = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!user || !formAmount || !formCategory) {
-      alert("Jumlah dan kategori harus diisi!");
+    if (!user) {
+      alert("Silakan login terlebih dahulu");
       return;
+    }
+
+    if (formMode === "transaction") {
+      if (!formAmount || !formCategory) {
+        alert("Jumlah dan kategori harus diisi!");
+        return;
+      }
+    } else {
+      if (!formAmount || !formInstrument) {
+        alert("Jumlah dan instrumen harus diisi!");
+        return;
+      }
     }
 
     setIsSubmitting(true);
     try {
-      await addTransaction(user.uid, {
-        amount: parseInt(formAmount),
-        type: formType,
-        category: formCategory,
-        description: formDescription,
-        date: formDate,
-        icon: initialCategories.find(c => c.name === formCategory)?.icon || "📦",
-      });
+      if (formMode === "transaction") {
+        await addTransaction(user.uid, {
+          amount: parseInt(formAmount),
+          type: formType,
+          category: formCategory,
+          description: formDescription,
+          date: formDate,
+          icon: initialCategories.find(c => c.name === formCategory)?.icon || "📦",
+        });
+      } else {
+        // Investment transaction
+        const instrumentDescription = `Instrumen: ${formInstrument}${formUsdIdr ? ` (Kurs: ${formUsdIdr})` : ""}`;
+        await addTransaction(user.uid, {
+          amount: parseInt(formAmount),
+          type: "expense",
+          category: "Investasi",
+          description: instrumentDescription,
+          date: formDate,
+          icon: "💼",
+        });
+      }
       setShowAddModal(false);
       setFormAmount("");
       setFormCategory("");
       setFormDescription("");
+      setFormInstrument("");
+      setFormUsdIdr("");
       setFormDate(getTodayDate());
+      setFormMode("transaction");
       await loadTransactions();
     } catch (error) {
       console.error("Error adding transaction:", error);
@@ -298,54 +340,124 @@ export default function TransactionsPage() {
               </svg>
             </button>
             <h2 className="text-xl font-bold mb-4 text-gray-900 dark:text-gray-100">Tambah Transaksi</h2>
+            
+            {/* Mode Selection */}
+            <div className="mb-4 flex gap-2">
+              <button
+                onClick={() => setFormMode("transaction")}
+                className={`flex-1 py-2 px-3 rounded-lg font-medium transition ${
+                  formMode === "transaction"
+                    ? "bg-indigo-600 text-white"
+                    : "bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600"
+                }`}
+              >
+                Transaksi
+              </button>
+              <button
+                onClick={() => setFormMode("investment")}
+                className={`flex-1 py-2 px-3 rounded-lg font-medium transition ${
+                  formMode === "investment"
+                    ? "bg-indigo-600 text-white"
+                    : "bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600"
+                }`}
+              >
+                Investasi
+              </button>
+            </div>
+
             <form onSubmit={handleAddTransaction} className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Tipe</label>
-                <select
-                  value={formType}
-                  onChange={(e) => setFormType(e.target.value as "income" | "expense")}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white dark:bg-slate-900 text-gray-900 dark:text-gray-100"
-                >
-                  <option value="expense">Pengeluaran</option>
-                  <option value="income">Pemasukan</option>
-                </select>
-              </div>
+              {formMode === "transaction" ? (
+                <>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Tipe</label>
+                    <select
+                      value={formType}
+                      onChange={(e) => setFormType(e.target.value as "income" | "expense")}
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white dark:bg-slate-900 text-gray-900 dark:text-gray-100"
+                    >
+                      <option value="expense">Pengeluaran</option>
+                      <option value="income">Pemasukan</option>
+                    </select>
+                  </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Kategori</label>
-                <select
-                  value={formCategory}
-                  onChange={(e) => setFormCategory(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white dark:bg-slate-900 text-gray-900 dark:text-gray-100"
-                >
-                  <option value="">Pilih kategori</option>
-                  {initialCategories.filter(c => c.type === formType).map(cat => (
-                    <option key={cat.id} value={cat.name}>{cat.icon} {cat.name}</option>
-                  ))}
-                </select>
-              </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Kategori</label>
+                    <select
+                      value={formCategory}
+                      onChange={(e) => setFormCategory(e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white dark:bg-slate-900 text-gray-900 dark:text-gray-100"
+                    >
+                      <option value="">Pilih kategori</option>
+                      {initialCategories.filter(c => c.type === formType).map(cat => (
+                        <option key={cat.id} value={cat.name}>{cat.icon} {cat.name}</option>
+                      ))}
+                    </select>
+                  </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Jumlah</label>
-                <input
-                  type="number"
-                  value={formAmount}
-                  onChange={(e) => setFormAmount(e.target.value)}
-                  placeholder="0"
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white dark:bg-slate-900 text-gray-900 dark:text-gray-100"
-                />
-              </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Jumlah</label>
+                    <input
+                      type="number"
+                      value={formAmount}
+                      onChange={(e) => setFormAmount(e.target.value)}
+                      placeholder="0"
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white dark:bg-slate-900 text-gray-900 dark:text-gray-100"
+                    />
+                  </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Deskripsi (opsional)</label>
-                <input
-                  type="text"
-                  value={formDescription}
-                  onChange={(e) => setFormDescription(e.target.value)}
-                  placeholder="Catatan"
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white dark:bg-slate-900 text-gray-900 dark:text-gray-100"
-                />
-              </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Deskripsi (opsional)</label>
+                    <input
+                      type="text"
+                      value={formDescription}
+                      onChange={(e) => setFormDescription(e.target.value)}
+                      placeholder="Catatan"
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white dark:bg-slate-900 text-gray-900 dark:text-gray-100"
+                    />
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Instrumen</label>
+                    <select
+                      value={formInstrument}
+                      onChange={(e) => setFormInstrument(e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white dark:bg-slate-900 text-gray-900 dark:text-gray-100"
+                    >
+                      <option value="">Pilih instrumen</option>
+                      {investmentInstruments.map(inst => (
+                        <option key={inst} value={inst}>{inst}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Jumlah</label>
+                    <input
+                      type="number"
+                      value={formAmount}
+                      onChange={(e) => setFormAmount(e.target.value)}
+                      placeholder="0"
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white dark:bg-slate-900 text-gray-900 dark:text-gray-100"
+                    />
+                  </div>
+
+                  {formInstrument.toLowerCase().includes("saham us") && (
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Kurs USD/IDR (opsional)</label>
+                      <input
+                        type="number"
+                        value={formUsdIdr}
+                        onChange={(e) => setFormUsdIdr(e.target.value)}
+                        placeholder="15000"
+                        step="0.01"
+                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white dark:bg-slate-900 text-gray-900 dark:text-gray-100"
+                      />
+                    </div>
+                  )}
+                </>
+              )}
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Tanggal</label>
