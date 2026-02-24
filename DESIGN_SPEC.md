@@ -106,16 +106,17 @@ Transition: all 0.2s ease
 
 #### Floating Action Button (FAB)
 ```css
-Size: 48px (w-12 h-12)
+Size: 56px (w-14 h-14)
 Background: #6366f1 (indigo-600)
 Hover: #4f46e5 (indigo-700)
 Text: White
-Border Radius: 0.75rem (rounded-xl)
-Shadow: shadow-sm (subtle, integrated look)
+Border Radius: 50% (rounded-full)
+Shadow: shadow-lg (elevated look)
+Outline: ring-4 ring-white (light) / ring-gray-900 (dark)
 Position: Fixed bottom navigation, center slot (position 3)
 Active Scale: 0.95
-Margin Top: -4px (-mt-1)
-Design Philosophy: Integrated with navigation panel, not floating above
+Margin Top: -28px (-mt-7)
+Design Philosophy: Floating slightly above navigation panel with contour outline
 ```
 
 ### Input Fields
@@ -438,6 +439,15 @@ When adding NEW features:
 ---
 
 ## Version History
+
+### v1.2.0 (2026-02-24)
+- Enhanced FAB (Floating Action Button) with elevated design
+- Added outline contour: ring-4 ring-white (light) / ring-gray-900 (dark)
+- Increased elevation: margin-top -4px → -28px
+- Reverted to circular design: rounded-xl → rounded-full
+- Size increased: 48px → 56px
+- Shadow enhanced: shadow-sm → shadow-lg
+- Design philosophy: Floating slightly above panel with prominent outline
 
 ### v1.1.0 (2026-02-24)
 - Updated FAB (Floating Action Button) design
