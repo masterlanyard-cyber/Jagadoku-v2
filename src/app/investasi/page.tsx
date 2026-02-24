@@ -230,6 +230,7 @@ export default function InvestasiPage() {
   const [formCategory, setFormCategory] = useState("Investasi");
   const [formDescription, setFormDescription] = useState("");
   const [formInstrument, setFormInstrument] = useState("");
+  const [formInvestmentDescription, setFormInvestmentDescription] = useState("");
   const [formUsdIdr, setFormUsdIdr] = useState("");
 
   const getTodayDate = () => {
@@ -492,7 +493,9 @@ export default function InvestasiPage() {
         await addTransaction(transactionData);
       } else {
         // Investment transaction
-        let description = `Instrumen: ${formInstrument}`;
+        let description = formInvestmentDescription 
+          ? `${formInvestmentDescription} - Instrumen: ${formInstrument}` 
+          : `Instrumen: ${formInstrument}`;
         if (formInstrument.toLowerCase().includes("saham us") && formUsdIdr) {
           description += ` - USDIDR: ${formUsdIdr}`;
         }
@@ -514,6 +517,7 @@ export default function InvestasiPage() {
       setFormCategory("");
       setFormDescription("");
       setFormInstrument("");
+      setFormInvestmentDescription("");
       setFormUsdIdr("");
       setFormDate(getTodayDate());
       setFormMode("investment");
@@ -798,6 +802,17 @@ export default function InvestasiPage() {
                         <option key={inst} value={inst}>{inst}</option>
                       ))}
                     </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Deskripsi/Nama Instrumen</label>
+                    <input
+                      type="text"
+                      value={formInvestmentDescription}
+                      onChange={(e) => setFormInvestmentDescription(e.target.value)}
+                      placeholder="Contoh: AAPL, BBRI, Bitcoin, dll"
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white dark:bg-slate-900 text-gray-900 dark:text-gray-100"
+                    />
                   </div>
 
                   <div>
