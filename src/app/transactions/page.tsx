@@ -4,9 +4,20 @@ import { useState, useEffect, useCallback, useMemo } from "react";
 import Link from "next/link";
 import { useAuth } from "@/context/AuthContext";
 import { useRouter } from "next/navigation";
-import { getTransactions, deleteTransaction, Transaction, exportToCSV } from "@/lib/firestore";
-import FloatingActionButton from "@/components/FloatingActionButton";
+import { getTransactions, deleteTransaction, Transaction, exportToCSV, addTransaction } from "@/lib/firestore";
 import { parseLocalDate } from "@/lib/date";
+
+const initialCategories = [
+  { id: "makanan", name: "Makanan", icon: "🍔", type: "expense" },
+  { id: "transportasi", name: "Transportasi", icon: "🚗", type: "expense" },
+  { id: "belanja", name: "Belanja", icon: "🛍️", type: "expense" },
+  { id: "hiburan", name: "Hiburan", icon: "🎬", type: "expense" },
+  { id: "utilitas", name: "Utilitas", icon: "💡", type: "expense" },
+  { id: "kesehatan", name: "Kesehatan", icon: "💊", type: "expense" },
+  { id: "gaji", name: "Gaji", icon: "💰", type: "income" },
+  { id: "bonus", name: "Bonus", icon: "🎁", type: "income" },
+  { id: "lainnya", name: "Lainnya", icon: "📦", type: "expense" },
+];
 
 function formatRupiah(amount: number): string {
   return new Intl.NumberFormat("id-ID", {
@@ -23,6 +34,20 @@ export default function TransactionsPage() {
   const [loadingData, setLoadingData] = useState(true);
   const [filter, setFilter] = useState<"all" | "income" | "expense">("all");
   const [selectedMonth, setSelectedMonth] = useState<string>("all");
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [formType, setFormType] = useState<"income" | "expense">("expense");
+  const [formAmount, setFormAmount] = useState("");
+  const [formCategory, setFormCategory] = useState("");
+  const [formDescription, setFormDescription] = useState("");
+  const getTodayDate = () => {
+    const now = new Date();
+    const yyyy = now.getFullYear();
+    const mm = String(now.getMonth() + 1).padStart(2, '0');
+    const dd = String(now.getDate()).padStart(2, '0');
+    return `${yyyy}-${mm}-${dd}`;
+  };
+  const [formDate, setFormDate] = useState(getTodayDate());
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const loadTransactions = useCallback(async () => {
     if (!user) return;
@@ -46,11 +71,10 @@ export default function TransactionsPage() {
     }
   }, [user, loading, needsAuthCode, router, loadTransactions]);
 
-  // Sort transactions by date (newest first) before filtering
   const sortedTransactions = [...transactions].sort((a, b) => {
     const dateA = parseLocalDate(a.date).getTime();
     const dateB = parseLocalDate(b.date).getTime();
-    return dateB - dateA; // Newest first
+    return dateB - dateA;
   });
 
   const monthOptions = useMemo(() => {
@@ -91,10 +115,42 @@ export default function TransactionsPage() {
     }
   };
 
+  const handleAddTransaction = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!user || !formAmount || !formCategory) {
+      alert("Jumlah dan kategori harus diisi!");
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      await addTransaction(user.uid, {
+        amount: parseInt(formAmount),
+        type: formType,
+        category: formCategory,
+        description: formDescription,
+        date: formDate,
+        icon: initialCategories.find(c => c.name === formCategory)?.icon || "📦",
+      });
+      setShowAddModal(false);
+      setFormAmount("");
+      setFormCategory("");
+      setFormDescription("");
+      setFormDate(getTodayDate());
+      await loadTransactions();
+    } catch (error) {
+      console.error("Error adding transaction:", error);
+      alert("Gagal menambah transaksi");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   if (loading || loadingData) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="text-lg text-gray-600">Loading...</div>
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-950">
+        <div className="text-lg text-gray-600 dark:text-gray-400">Loading...</div>
       </div>
     );
   }
@@ -104,28 +160,28 @@ export default function TransactionsPage() {
   if (needsAuthCode) return null;
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-24">
-      <header className="bg-white border-b border-gray-200 sticky top-0 z-10">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-950 pb-24">
+      <header className="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 sticky top-0 z-10">
         <div className="flex items-center justify-between h-14 px-4">
           <div className="flex items-center gap-3">
-            <Link href="/" className="p-2 -ml-2 hover:bg-gray-100 rounded-lg">
-              <svg className="w-6 h-6 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <Link href="/" className="p-2 -ml-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg">
+              <svg className="w-6 h-6 text-gray-600 dark:text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
               </svg>
             </Link>
-            <h1 className="font-bold text-gray-900">Transaksi</h1>
+            <h1 className="font-bold text-gray-900 dark:text-white">Transaksi</h1>
           </div>
         </div>
       </header>
 
       <div className="grid grid-cols-2 gap-3 p-4">
-        <div className="bg-green-50 rounded-2xl p-4 border border-green-100">
-          <p className="text-xs text-green-600 font-medium mb-1">Total Pemasukan</p>
-          <p className="text-lg font-bold text-green-700">{formatRupiah(totalIncome)}</p>
+        <div className="bg-green-50 dark:bg-green-900 rounded-2xl p-4 border border-green-100 dark:border-green-700">
+          <p className="text-xs text-green-600 dark:text-green-400 font-medium mb-1">Total Pemasukan</p>
+          <p className="text-lg font-bold text-green-700 dark:text-green-300">{formatRupiah(totalIncome)}</p>
         </div>
-        <div className="bg-red-50 rounded-2xl p-4 border border-red-100">
-          <p className="text-xs text-red-600 font-medium mb-1">Total Pengeluaran</p>
-          <p className="text-lg font-bold text-red-700">{formatRupiah(totalExpense)}</p>
+        <div className="bg-red-50 dark:bg-red-900 rounded-2xl p-4 border border-red-100 dark:border-red-700">
+          <p className="text-xs text-red-600 dark:text-red-400 font-medium mb-1">Total Pengeluaran</p>
+          <p className="text-lg font-bold text-red-700 dark:text-red-300">{formatRupiah(totalExpense)}</p>
         </div>
       </div>
 
@@ -187,16 +243,16 @@ export default function TransactionsPage() {
         {filteredTransactions.length === 0 ? (
           <div className="text-center py-12">
             <span className="text-4xl mb-4 block">📭</span>
-            <p className="text-gray-500">
+            <p className="text-gray-500 dark:text-gray-400">
               Belum ada transaksi
               {selectedMonth !== "all" ? ` untuk ${formatMonthLabel(selectedMonth)}` : ""}
             </p>
-            <Link 
-              href="/"
-              className="inline-block mt-4 text-indigo-600 font-medium hover:text-indigo-700"
+            <button 
+              onClick={() => setShowAddModal(true)}
+              className="inline-block mt-4 text-indigo-600 dark:text-indigo-400 font-medium hover:text-indigo-700 dark:hover:text-indigo-300"
             >
               Tambah transaksi
-            </Link>
+            </button>
           </div>
         ) : (
           filteredTransactions.map((t) => (
@@ -205,23 +261,23 @@ export default function TransactionsPage() {
               className="bg-white dark:bg-gray-900 rounded-2xl p-4 shadow-sm border border-gray-100 dark:border-gray-700 flex items-center gap-3"
             >
               <div className={`w-12 h-12 rounded-full flex items-center justify-center text-xl shrink-0 ${
-                t.type === "income" ? "bg-green-100" : "bg-gray-100"
+                t.type === "income" ? "bg-green-100 dark:bg-green-900" : "bg-gray-100 dark:bg-gray-700"
               }`}>
                 {t.icon}
               </div>
               <div className="flex-1 min-w-0">
-                <p className="font-medium text-gray-900 truncate">{t.description}</p>
+                <p className="font-medium text-gray-900 dark:text-white truncate">{t.description}</p>
                 <p className="text-xs text-gray-500 dark:text-gray-400">{t.category} • {t.date}</p>
               </div>
               <div className="text-right shrink-0">
                 <p className={`font-semibold ${
-                  t.type === "income" ? "text-green-600" : "text-red-600"
+                  t.type === "income" ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400"
                 }`}>
                   {t.type === "income" ? "+" : "-"}{formatRupiah(t.amount)}
                 </p>
                 <button 
                   onClick={() => handleDelete(t.id)}
-                  className="text-xs text-gray-400 hover:text-red-500 mt-1"
+                  className="text-xs text-gray-400 hover:text-red-500 dark:hover:text-red-400 mt-1"
                 >
                   Hapus
                 </button>
@@ -230,6 +286,88 @@ export default function TransactionsPage() {
           ))
         )}
       </div>
+
+      <div className="fixed bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-gray-50 dark:from-gray-950 to-transparent pointer-events-none" />
+
+      {showAddModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
+          <div className="bg-white dark:bg-gray-900 rounded-xl shadow-lg max-w-md w-full p-6 relative border border-gray-100 dark:border-gray-700">
+            <button className="absolute top-2 right-2 text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300" onClick={() => setShowAddModal(false)}>
+              <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+            <h2 className="text-xl font-bold mb-4 text-gray-900 dark:text-gray-100">Tambah Transaksi</h2>
+            <form onSubmit={handleAddTransaction} className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Tipe</label>
+                <select
+                  value={formType}
+                  onChange={(e) => setFormType(e.target.value as "income" | "expense")}
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white dark:bg-slate-900 text-gray-900 dark:text-gray-100"
+                >
+                  <option value="expense">Pengeluaran</option>
+                  <option value="income">Pemasukan</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Kategori</label>
+                <select
+                  value={formCategory}
+                  onChange={(e) => setFormCategory(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white dark:bg-slate-900 text-gray-900 dark:text-gray-100"
+                >
+                  <option value="">Pilih kategori</option>
+                  {initialCategories.filter(c => c.type === formType).map(cat => (
+                    <option key={cat.id} value={cat.name}>{cat.icon} {cat.name}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Jumlah</label>
+                <input
+                  type="number"
+                  value={formAmount}
+                  onChange={(e) => setFormAmount(e.target.value)}
+                  placeholder="0"
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white dark:bg-slate-900 text-gray-900 dark:text-gray-100"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Deskripsi (opsional)</label>
+                <input
+                  type="text"
+                  value={formDescription}
+                  onChange={(e) => setFormDescription(e.target.value)}
+                  placeholder="Catatan"
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white dark:bg-slate-900 text-gray-900 dark:text-gray-100"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Tanggal</label>
+                <input
+                  type="date"
+                  value={formDate}
+                  onChange={(e) => setFormDate(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white dark:bg-slate-900 text-gray-900 dark:text-gray-100"
+                />
+              </div>
+
+              <button
+                type="submit"
+                disabled={isSubmitting}
+                className="w-full bg-indigo-600 hover:bg-indigo-700 disabled:bg-gray-400 text-white font-semibold py-2 rounded-lg transition"
+              >
+                {isSubmitting ? "Menyimpan..." : "Simpan"}
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
 
       <nav className="fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-700 pb-safe z-40">
         <div className="flex items-center justify-around px-2 py-2">
@@ -240,7 +378,7 @@ export default function TransactionsPage() {
             <span className="text-xs font-medium">Beranda</span>
           </Link>
           
-          <Link href="/transactions" className="flex flex-col items-center gap-1 px-3 py-2 rounded-xl text-indigo-600 bg-indigo-50">
+          <Link href="/transactions" className="flex flex-col items-center gap-1 px-3 py-2 rounded-xl text-indigo-600 bg-indigo-50 dark:bg-indigo-900 dark:text-indigo-300">
             <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
             </svg>
@@ -254,6 +392,16 @@ export default function TransactionsPage() {
             </svg>
             <span className="text-xs font-medium">Anggaran</span>
           </Link>
+
+          <button
+            onClick={() => setShowAddModal(true)}
+            className="w-14 h-14 bg-indigo-600 hover:bg-indigo-700 text-white rounded-full shadow-lg shadow-indigo-500/40 flex items-center justify-center transition-all active:scale-95 -mt-6"
+            title="Tambah Transaksi"
+          >
+            <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+            </svg>
+          </button>
           
           <Link href="/investasi" className="flex flex-col items-center gap-1 px-3 py-2 rounded-xl text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800">
             <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -261,13 +409,9 @@ export default function TransactionsPage() {
             </svg>
             <span className="text-xs font-medium">Investasi</span>
           </Link>
-          
-          {/* AI menu removed */}
         </div>
         <div className="h-1 w-32 bg-gray-300 dark:bg-gray-600 rounded-full mx-auto mb-2"></div>
       </nav>
-
-      <FloatingActionButton onAddTransaction={loadTransactions} />
     </div>
   );
 }
