@@ -17,6 +17,17 @@ const STORAGE_KEY = "jagadoku-theme";
 function applyTheme(theme: Theme) {
   const root = document.documentElement;
   root.classList.toggle("dark", theme === "dark");
+  
+  // Force background colors explicitly
+  if (theme === "light") {
+    root.style.backgroundColor = "#f8f9fc";
+    root.style.colorScheme = "light";
+    document.body.style.backgroundColor = "#f8f9fc";
+  } else {
+    root.style.backgroundColor = "#0b1220";
+    root.style.colorScheme = "dark";
+    document.body.style.backgroundColor = "#0b1220";
+  }
 }
 
 function getInitialTheme(): Theme {
@@ -29,14 +40,29 @@ function getInitialTheme(): Theme {
     return savedTheme;
   }
 
-  return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+  return "light"; // Default to light mode for brighter appearance
 }
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [theme, setThemeState] = useState<Theme>(getInitialTheme);
 
   useEffect(() => {
+    // Apply theme immediately on mount
     applyTheme(theme);
+    
+    // Also add a MutationObserver to detect if dark class is being added unexpectedly
+    const observer = new MutationObserver(() => {
+      if (theme === "light" && document.documentElement.classList.contains("dark")) {
+        document.documentElement.classList.remove("dark");
+      }
+    });
+    
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ["class"]
+    });
+    
+    return () => observer.disconnect();
   }, [theme]);
 
   const setTheme = (nextTheme: Theme) => {

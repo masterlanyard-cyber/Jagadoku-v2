@@ -28,8 +28,27 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="id" data-scroll-behavior="smooth" suppressHydrationWarning>
-      <body className={inter.className}>
+    <html lang="id" data-scroll-behavior="smooth" suppressHydrationWarning style={{ backgroundColor: "#f8f9fc", colorScheme: "light" }}>
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              (function() {
+                const theme = localStorage.getItem('jagadoku-theme') || 'light';
+                const isDark = theme === 'dark';
+                document.documentElement.style.backgroundColor = isDark ? '#0b1220' : '#f8f9fc';
+                document.documentElement.style.colorScheme = isDark ? 'dark' : 'light';
+                if (isDark) {
+                  document.documentElement.classList.add('dark');
+                } else {
+                  document.documentElement.classList.remove('dark');
+                }
+              })();
+            `,
+          }}
+        />
+      </head>
+      <body className={`${inter.className} bg-gray-50`} style={{ backgroundColor: "#f8f9fc" }}>
         <ThemeProvider>
           <AuthProvider>
             {children}

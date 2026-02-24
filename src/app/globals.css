@@ -1,12 +1,15 @@
 @import "tailwindcss";
 
 :root {
-  --app-bg: #f9fafb;
-  --app-fg: #111827;
+  --app-bg: #f8f9fc;
+  --app-fg: #0f172a;
   --surface-card: #ffffff;
-  --surface-muted: #f3f4f6;
-  --border-subtle: #e5e7eb;
-  --text-muted: #4b5563;
+  --surface-muted: #f3f4f8;
+  --border-subtle: #e0e2ea;
+  --text-muted: #64748b;
+  --accent-light: #6366f1;
+  --accent-lighter: #eef2ff;
+  color-scheme: light;
 }
 
 .dark {
@@ -37,12 +40,356 @@ body {
   transition: background-color 0.2s ease, color 0.2s ease;
 }
 
+:not(.dark) body {
+  color: #0f172a !important;
+}
+
 .dark body {
   background-color: #0b1220;
   color: #e5e7eb;
 }
 
+/* Light mode overrides - ensure they're not applied in dark mode */
+:not(.dark) .bg-white {
+  background-color: #ffffff !important;
+}
+
+:not(.dark) .bg-gray-50 {
+  background-color: #f8f9fc !important;
+}
+
+:not(.dark) .bg-gray-100 {
+  background-color: #f3f4f8 !important;
+}
+
+/* Ensure dark text in light mode for contrast */
+:not(.dark) .text-gray-900 {
+  color: #0f172a !important;
+}
+
+:not(.dark) .text-gray-800 {
+  color: #1e293b !important;
+}
+
+:not(.dark) .text-gray-700 {
+  color: #334155 !important;
+}
+
+:not(.dark) .text-gray-600 {
+  color: #475569 !important;
+}
+
+:not(.dark) .text-gray-500 {
+  color: #64748b !important;
+}
+
+:not(.dark) .text-gray-400 {
+  color: #94a3b8 !important;
+}
+
+/* Remove the overly broad inherit rule that breaks gradients */
+/* Only apply inherit to elements WITHOUT explicit color classes */
+:not(.dark) h1:not([class*="text-"]),
+:not(.dark) h2:not([class*="text-"]),
+:not(.dark) h3:not([class*="text-"]),
+:not(.dark) h4:not([class*="text-"]),
+:not(.dark) h5:not([class*="text-"]),
+:not(.dark) h6:not([class*="text-"]),
+:not(.dark) p:not([class*="text-"]),
+:not(.dark) span:not([class*="text-"]),
+:not(.dark) div:not([class*="text-"]):not([class*="bg-gradient"]),
+:not(.dark) button:not([class*="text-"]) {
+  color: inherit;
+}
+
+/* Refined light mode cards and components */
+:not(.dark) .rounded-lg,
+:not(.dark) .rounded-xl,
+:not(.dark) .rounded-2xl {
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08) !important;
+}
+
+:not(.dark) .border {
+  border-color: #e0e2ea !important;
+}
+
+:not(.dark) .border-gray-100,
+:not(.dark) .border-gray-200,
+:not(.dark) .border-gray-300 {
+  border-color: #e0e2ea !important;
+}
+
+:not(.dark) .border-green-100 {
+  border-color: #bbf7d0 !important;
+}
+
+:not(.dark) .border-red-100 {
+  border-color: #fecaca !important;
+}
+
+:not(.dark) .border-amber-100 {
+  border-color: #fde68a !important;
+}
+
+:not(.dark) .border-blue-100 {
+  border-color: #bfdbfe !important;
+}
+
+:not(.dark) .border-blue-900 {
+  border-color: #93c5fd !important;
+}
+
+:not(.dark) .border-green-900 {
+  border-color: #86efac !important;
+}
+
+:not(.dark) .border-red-900 {
+  border-color: #fca5a5 !important;
+}
+
+:not(.dark) .border-amber-900 {
+  border-color: #fcd34d !important;
+}
+
+/* Fix colored backgrounds in light mode */
+:not(.dark) .bg-indigo-100 {
+  background-color: #e0e7ff !important;
+}
+
+:not(.dark) .bg-indigo-900 {
+  background-color: #eef2ff !important;
+}
+
+/* Ensure gradient backgrounds remain dark and readable */
+:not(.dark) .from-indigo-600 {
+  --tw-gradient-from: #4f46e5 !important;
+  --tw-gradient-to: rgb(79 70 229 / 0) !important;
+  --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to) !important;
+}
+
+:not(.dark) .to-purple-600 {
+  --tw-gradient-to: #9333ea !important;
+}
+
+:not(.dark) .from-blue-500 {
+  --tw-gradient-from: #3b82f6 !important;
+  --tw-gradient-to: rgb(59 130 246 / 0) !important;
+  --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to) !important;
+}
+
+:not(.dark) .to-blue-600 {
+  --tw-gradient-to: #2563eb !important;
+}
+
+:not(.dark) .bg-green-50 {
+  background-color: #f0fdf4 !important;
+}
+
+:not(.dark) .bg-green-100 {
+  background-color: #dcfce7 !important;
+}
+
+:not(.dark) .bg-green-900 {
+  background-color: #f0fdf4 !important;
+}
+
+:not(.dark) .bg-red-50 {
+  background-color: #fef2f2 !important;
+}
+
+:not(.dark) .bg-red-100 {
+  background-color: #fee2e2 !important;
+}
+
+:not(.dark) .bg-red-900 {
+  background-color: #fef2f2 !important;
+}
+
+:not(.dark) .bg-amber-100 {
+  background-color: #fef3c7 !important;
+}
+
+:not(.dark) .bg-amber-900 {
+  background-color: #fffbeb !important;
+}
+
+:not(.dark) .bg-blue-50 {
+  background-color: #eff6ff !important;
+}
+
+:not(.dark) .bg-blue-100 {
+  background-color: #dbeafe !important;
+}
+
+:not(.dark) .bg-blue-900 {
+  background-color: #eff6ff !important;
+}
+
+/* Ensure text colors are dark on light backgrounds */
+:not(.dark) .text-indigo-400 {
+  color: #6366f1 !important;
+}
+
+:not(.dark) .text-green-200 {
+  color: #16a34a !important;
+}
+
+:not(.dark) .text-green-300 {
+  color: #16a34a !important;
+}
+
+:not(.dark) .text-green-400 {
+  color: #16a34a !important;
+}
+
+:not(.dark) .text-green-600 {
+  color: #16a34a !important;
+}
+
+:not(.dark) .text-green-700 {
+  color: #15803d !important;
+}
+
+:not(.dark) .text-green-800 {
+  color: #166534 !important;
+}
+
+:not(.dark) .text-red-200 {
+  color: #dc2626 !important;
+}
+
+:not(.dark) .text-red-300 {
+  color: #dc2626 !important;
+}
+
+:not(.dark) .text-red-400 {
+  color: #dc2626 !important;
+}
+
+:not(.dark) .text-red-600 {
+  color: #dc2626 !important;
+}
+
+:not(.dark) .text-red-700 {
+  color: #b91c1c !important;
+}
+
+:not(.dark) .text-red-800 {
+  color: #991b1b !important;
+}
+
+:not(.dark) .text-amber-300 {
+  color: #d97706 !important;
+}
+
+:not(.dark) .text-amber-400 {
+  color: #d97706 !important;
+}
+
+:not(.dark) .text-amber-600 {
+  color: #d97706 !important;
+}
+
+:not(.dark) .text-amber-700 {
+  color: #b45309 !important;
+}
+
+:not(.dark) .text-blue-200 {
+  color: #1d4ed8 !important;
+}
+
+:not(.dark) .text-blue-300 {
+  color: #1d4ed8 !important;
+}
+
+:not(.dark) .text-blue-600 {
+  color: #2563eb !important;
+}
+
+:not(.dark) .text-blue-800 {
+  color: #1e40af !important;
+}
+
+:not(.dark) .text-blue-900 {
+  color: #1e3a8a !important;
+}
+
+/* Ensure text colors in gradients remain white and readable */
+:not(.dark) .bg-gradient-to-br .text-white,
+:not(.dark) .text-white {
+  color: #ffffff !important;
+}
+
+:not(.dark) .bg-gradient-to-br .text-indigo-100,
+:not(.dark) .text-indigo-100 {
+  color: #e0e7ff !important;
+}
+
+:not(.dark) .bg-gradient-to-br .text-green-200 {
+  color: #bbf7d0 !important;
+}
+
+:not(.dark) .bg-gradient-to-br .text-red-200 {
+  color: #fecaca !important;
+}
+
+/* Ensure gradient backgrounds are fully opaque and don't get overridden */
+:not(.dark) .bg-gradient-to-br {
+  opacity: 1 !important;
+}
+
 @layer components {
+  /* Light mode refined styling */
+  :not(.dark) input,
+  :not(.dark) select,
+  :not(.dark) textarea {
+    background-color: #ffffff !important;
+    color: #0f172a !important;
+    border-color: #e0e2ea !important;
+    box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.05) !important;
+  }
+
+  :not(.dark) input::placeholder,
+  :not(.dark) textarea::placeholder {
+    color: #94a3b8 !important;
+  }
+
+  :not(.dark) input:focus,
+  :not(.dark) select:focus,
+  :not(.dark) textarea:focus {
+    border-color: #6366f1 !important;
+    box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.05), 0 0 0 3px rgba(99, 102, 241, 0.1) !important;
+  }
+
+  :not(.dark) button {
+    transition: all 0.2s ease !important;
+  }
+
+  :not(.dark) .hover\:bg-gray-100:hover {
+    background-color: #f3f4f8 !important;
+  }
+
+  :not(.dark) .hover\:bg-red-50:hover {
+    background-color: #fee2e2 !important;
+  }
+
+  :not(.dark) .hover\:bg-red-900:hover {
+    background-color: #fef2f2 !important;
+  }
+
+  :not(.dark) .bg-indigo-50 {
+    background-color: #eef2ff !important;
+  }
+
+  :not(.dark) .text-indigo-600 {
+    color: #6366f1 !important;
+  }
+
+  :not(.dark) .text-indigo-700 {
+    color: #4f46e5 !important;
+  }
+
+  /* Dark mode styling */
   .dark .bg-gray-50 {
     background-color: var(--app-bg) !important;
   }
@@ -123,4 +470,24 @@ body {
   .safe-bottom {
     padding-bottom: env(safe-area-inset-bottom);
   }
+}
+
+/* Force light mode backgrounds */
+:not(.dark) body,
+:not(.dark) html {
+  background-color: #f8f9fc !important;
+}
+
+:not(.dark) .min-h-screen {
+  background-color: #f8f9fc !important;
+}
+
+/* Additional explicit light mode styling */
+html:not(.dark) {
+  background-color: #f8f9fc;
+  color-scheme: light;
+}
+
+body:not(.dark) {
+  background-color: #f8f9fc;
 }
