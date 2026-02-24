@@ -29,7 +29,19 @@ const initialCategories = [
   { id: "kesehatan", name: "Kesehatan", icon: "💊", type: "expense" },
   { id: "gaji", name: "Gaji", icon: "💰", type: "income" },
   { id: "bonus", name: "Bonus", icon: "🎁", type: "income" },
+  { id: "investasi", name: "Investasi", icon: "📈", type: "expense" },
   { id: "lainnya", name: "Lainnya", icon: "📦", type: "expense" },
+];
+
+const investmentInstruments = [
+  "Saham US",
+  "Saham ID",
+  "Emas",
+  "Crypto",
+  "Reksa Dana",
+  "Obligasi",
+  "Deposito",
+  "Lainnya",
 ];
 
 export default function FloatingActionButton({ onAddTransaction, onTransactionAdded, onCreateTransaction }: FloatingActionButtonProps) {
@@ -39,6 +51,8 @@ export default function FloatingActionButton({ onAddTransaction, onTransactionAd
   const [formAmount, setFormAmount] = useState("");
   const [formCategory, setFormCategory] = useState("");
   const [formDescription, setFormDescription] = useState("");
+  const [formInstrument, setFormInstrument] = useState("");
+  const [formUsdIdr, setFormUsdIdr] = useState("");
   
   // Get today's date in local timezone (NOT UTC)
   const getTodayDate = () => {
@@ -64,14 +78,27 @@ export default function FloatingActionButton({ onAddTransaction, onTransactionAd
       return;
     }
 
+    if (formCategory === "Investasi" && !formInstrument) {
+      alert("Instrumen investasi harus dipilih!");
+      return;
+    }
+
     setIsSubmitting(true);
 
     try {
+      let description = formDescription;
+      if (formCategory === "Investasi") {
+        description = `Instrumen: ${formInstrument}`;
+        if (formInstrument.toLowerCase().includes("saham us") && formUsdIdr) {
+          description += ` - USDIDR: ${formUsdIdr}`;
+        }
+      }
+
       const transactionPayload: Omit<Transaction, "id"> = {
         amount: parseInt(formAmount),
         type: formType,
         category: formCategory,
-        description: formDescription,
+        description: description,
         date: formDate,
         icon: getCategoryIcon(formCategory),
       };
@@ -110,6 +137,8 @@ export default function FloatingActionButton({ onAddTransaction, onTransactionAd
       setFormDescription("");
       setFormType("expense");
       setFormDate(getTodayDate());
+      setFormInstrument("");
+      setFormUsdIdr("");
       setShowAddModal(false);
       alert("✓ Transaksi berhasil ditambahkan!");
       
@@ -190,6 +219,38 @@ export default function FloatingActionButton({ onAddTransaction, onTransactionAd
                     ))}
                 </select>
               </div>
+
+              {/* Instrumen Investasi (hanya jika kategori adalah Investasi) */}
+              {formCategory === "Investasi" && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Instrumen</label>
+                  <select
+                    value={formInstrument}
+                    onChange={(e) => setFormInstrument(e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white dark:bg-slate-900 text-gray-900 dark:text-gray-100"
+                  >
+                    <option value="">Pilih instrumen</option>
+                    {investmentInstruments.map(instrument => (
+                      <option key={instrument} value={instrument}>{instrument}</option>
+                    ))}
+                  </select>
+                </div>
+              )}
+
+              {/* USD/IDR untuk Saham US */}
+              {formCategory === "Investasi" && formInstrument.toLowerCase().includes("saham us") && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Kurs USD/IDR (opsional)</label>
+                  <input
+                    type="number"
+                    value={formUsdIdr}
+                    onChange={(e) => setFormUsdIdr(e.target.value)}
+                    placeholder="15000"
+                    step="0.01"
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white dark:bg-slate-900 text-gray-900 dark:text-gray-100"
+                  />
+                </div>
+              )}
 
               {/* Jumlah */}
               <div>
