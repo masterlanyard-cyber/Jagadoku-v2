@@ -1,0 +1,23 @@
+{
+  "locked": true,
+  "version": "1.0.0",
+  "locked_date": "2026-02-24",
+  "specification": "DESIGN_SPEC.md",
+  "protected_files": [
+    "src/app/globals.css",
+    "src/context/ThemeContext.tsx",
+    "src/app/layout.tsx",
+    "tailwind.config.js"
+  ],
+  "locked_components": [
+    "colors",
+    "typography",
+    "spacing",
+    "shadows",
+    "borders",
+    "navigation",
+    "FAB_position",
+    "theme_defaults"
+  ],
+  "notes": "Any UI modifications must be approved and documented in DESIGN_SPEC.md with version updates."
+}
