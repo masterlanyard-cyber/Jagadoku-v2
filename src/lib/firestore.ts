@@ -20,7 +20,7 @@ export interface Transaction {
   amount: number;
   category: string;
   date: string;
-  note: string;
+  note?: string;
   type: 'income' | 'expense';
   createdAt?: Date;
   description: string;
