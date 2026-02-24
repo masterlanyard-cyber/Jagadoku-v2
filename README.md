@@ -1,5 +1,16 @@
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
+## Release Notes
+
+### 2026-02-24 — UI Light/Dark Mode
+
+- Added global light/dark theme support with persistent preference (`localStorage`).
+- Added floating theme toggle button available across app pages.
+- Applied dark-mode contrast refinements for key pages and components:
+	- Dashboard, Budget, Transactions, Profile, Login, Register, Auth Code, Stats
+	- Charts, alerts, modals, forms, headers, and bottom navigation
+- Updated global styling (`globals.css`) and class-based dark mode configuration.
+
 ## Getting Started
 
 First, run the development server:
