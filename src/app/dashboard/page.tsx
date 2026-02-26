@@ -16,10 +16,7 @@ export default function LegacyDashboardRedirectPage() {
       return;
     }
 
-    if (needsAuthCode) {
-      router.replace("/auth-code");
-      return;
-    }
+    // Tidak perlu redirect ke /auth-code lagi
 
     router.replace("/");
   }, [loading, user, needsAuthCode, router]);

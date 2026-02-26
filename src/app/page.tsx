@@ -134,10 +134,7 @@ export default function DashboardPage() {
       return;
     }
 
-    if (!loading && user && needsAuthCode) {
-      router.push('/auth-code');
-      return;
-    }
+    // Tidak perlu redirect ke /auth-code lagi
   }, [user, loading, needsAuthCode, router]);
 
   const income = transactions.filter(t => t.type === "income").reduce((sum, t) => sum + t.amount, 0);

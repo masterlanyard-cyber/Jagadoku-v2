@@ -27,10 +27,7 @@ export default function ProfilePage() {
     return null;
   }
 
-  if (needsAuthCode) {
-    router.push('/auth-code');
-    return null;
-  }
+  // Tidak perlu redirect ke /auth-code lagi
 
   const handleUpdateDisplayName = async (e: React.FormEvent) => {
     e.preventDefault();

@@ -31,6 +31,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const initialUser: User | null = (auth && auth.currentUser) ? auth.currentUser : null;
   const [user, setUser] = useState<User | null>(initialUser);
   const [loading, setLoading] = useState<boolean>(() => Boolean(auth));
+  // Auth code is no longer required for new users
   const [needsAuthCode, setNeedsAuthCode] = useState<boolean>(false);
   const googleProvider = new GoogleAuthProvider();
 
@@ -46,12 +47,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       setUser(user);
-      if (user && typeof window !== 'undefined') {
-        const required = localStorage.getItem(authCodeKey(user.uid)) === 'true';
-        setNeedsAuthCode(required);
-      } else {
-        setNeedsAuthCode(false);
-      }
+      // Selalu set needsAuthCode ke false
+      setNeedsAuthCode(false);
       setLoading(false);
     });
     return () => unsubscribe();
@@ -64,13 +61,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const isNewUser = Boolean(additional?.isNewUser);
 
     if (result.user && typeof window !== 'undefined') {
-      if (isNewUser) {
-        localStorage.setItem(authCodeKey(result.user.uid), 'true');
-        setNeedsAuthCode(true);
-      } else {
-        const required = localStorage.getItem(authCodeKey(result.user.uid)) === 'true';
-        setNeedsAuthCode(required);
-      }
+      // Tidak perlu auth code untuk user baru
+      setNeedsAuthCode(false);
     }
 
     return { isNewUser };

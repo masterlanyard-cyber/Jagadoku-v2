@@ -15,25 +15,17 @@ export default function LoginPage() {
   useEffect(() => {
     // Redirect to home if already logged in
     if (!authLoading && user) {
-      if (needsAuthCode) {
-        router.push('/auth-code');
-      } else {
-        router.push('/');
-      }
+      router.push('/');
     }
-  }, [user, authLoading, needsAuthCode, router]);
+  }, [user, authLoading, router]);
 
   const handleGoogleSignIn = async () => {
     setError('');
     setLoading(true);
 
     try {
-      const result = await signInWithGoogle();
-      if (result.isNewUser) {
-        router.push('/auth-code');
-      } else {
-        router.push('/');
-      }
+      await signInWithGoogle();
+      router.push('/');
     } catch (err: unknown) {
       const code = typeof err === 'object' && err && 'code' in err ? (err as { code?: string }).code : undefined;
       const message = typeof err === 'object' && err && 'message' in err ? (err as { message?: string }).message : undefined;

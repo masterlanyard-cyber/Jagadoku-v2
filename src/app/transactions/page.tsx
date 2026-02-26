@@ -79,8 +79,6 @@ export default function TransactionsPage() {
   useEffect(() => {
     if (!loading && !user) {
       router.push("/login");
-    } else if (!loading && user && needsAuthCode) {
-      router.push('/auth-code');
     } else if (user) {
       void loadTransactions();
     }

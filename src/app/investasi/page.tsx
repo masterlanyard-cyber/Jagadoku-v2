@@ -537,9 +537,7 @@ export default function InvestasiPage() {
       return;
     }
 
-    if (!loading && user && needsAuthCode) {
-      router.push("/auth-code");
-    }
+    // Tidak perlu redirect ke /auth-code lagi
   }, [loading, user, needsAuthCode, router]);
 
   useEffect(() => {
